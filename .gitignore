@@ -1,0 +1,8 @@
+node_modules/
+dist/
+target/
+near/registry/target/
+contracts/out/
+contracts/cache/
+.DS_Store
+*.log

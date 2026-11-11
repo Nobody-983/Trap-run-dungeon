@@ -1,0 +1,454 @@
+{"level":"debug","message":"[vite] connected.","timestamp":1793550627748}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550629721}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550633516}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550635370}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793550664552}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550667413}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550670205}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550672003}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550716923}
+{"level":"debug","message":"[vite] connected.","timestamp":1793550921543}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793550977991}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793550977991}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793550978240}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793550978240}
+{"level":"debug","message":"(previous line repeated 2× more)","timestamp":1793550980275}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793550980275}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793550980276}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793550980276}
+{"level":"debug","message":"[vite] hot updated: /src/components/ui.tsx","timestamp":1793550980276}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793550980277}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793550980277}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793550980277}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793550980277}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793550980278}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793550980278}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793550980278}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793550980278}
+{"level":"debug","message":"[vite] invalidate /src/components/Leaderboard.tsx: Could not Fast Refresh (\"demoBoard\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793550980279}
+{"level":"debug","message":"[vite] hot updated: /src/components/Leaderboard.tsx","timestamp":1793550980279}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793550980279}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793550980499}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793550980499}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793550980500}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793550980566}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793550980567}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793550980567}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/components/ui.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793550981307}
+{"level":"debug","message":"[vite] invalidate /src/components/Leaderboard.tsx: Could not Fast Refresh (\"demoBoard\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793550981308}
+{"level":"debug","message":"[vite] hot updated: /src/components/Leaderboard.tsx","timestamp":1793550981308}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793550981308}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793550981315}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793550981316}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793550981316}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551002720}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551002721}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551002721}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551002890}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551002890}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551002891}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551003776}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793551003776}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551003776}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551003777}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793551003778}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793551003778}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793551003778}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551004245}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793551004246}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551004246}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793551004247}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793551004247}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793551004247}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793551004247}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551004247}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551004248}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793551004248}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793551004249}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793551004249}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793551004560}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551004561}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793551004561}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551004561}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793551004566}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551004566}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793551004567}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551004567}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793551005246}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005246}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793551005246}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005246}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551005254}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005254}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551005255}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005255}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793551005939}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005939}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793551005940}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551005940}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793551020265}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551020265}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551020266}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793551020586}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793551020586}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793551020587}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551021705}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551021706}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551022286}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551022286}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551022700}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551022700}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551022701}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551022701}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551022707}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551022707}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551022708}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551022708}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551023365}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551023365}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551023366}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551023366}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551023369}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551023370}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551023371}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793551023371}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793551024068}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551024069}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793551024390}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793551024390}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793552852169}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793552852315}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793555297588}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793555297590}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793561313061}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576812843}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576812847}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576812849}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576812850}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576812852}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576812853}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576812854}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576812855}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576812857}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576812859}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576812863}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576812864}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576813141}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576813142}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576813142}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576813143}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576813143}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576813144}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576813144}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576813144}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576813145}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576813145}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576813146}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576813146}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576813678}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576813678}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576813678}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576813678}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576813679}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576813680}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793576813680}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576813693}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576813693}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576813693}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576813693}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576813694}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576813694}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576813694}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576813694}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576813694}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576813695}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576813695}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576813695}
+{"level":"debug","message":"[vite] hot updated: /src/render/DungeonCanvas.tsx","timestamp":1793576813695}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576813724}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576813725}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576813725}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576813726}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576813726}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576813727}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576813727}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576813728}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576813729}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576813729}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576813730}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576813730}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576813736}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576813737}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576813737}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576813737}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576813738}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576813738}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576813738}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576813738}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576813739}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576813739}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576813739}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576813744}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576938082}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576938084}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576938084}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576938085}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576938085}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576938090}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576938092}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576938093}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ModesScreen.tsx","timestamp":1793576938094}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576938095}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576938095}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576938096}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576938096}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576938470}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576938470}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576938470}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576938470}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576938470}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ModesScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576938471}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576938472}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576938472}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576938755}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576938755}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576938760}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576938761}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576940320}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576940320}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576940323}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576940323}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576956869}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576956869}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576956881}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576956882}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576959565}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576959565}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576959574}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576959574}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793576973600}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576973600}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576973601}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576973602}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576973602}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576973603}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576973603}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576973604}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576973605}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576973605}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576973606}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576973606}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793576973609}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793576973610}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793576973610}
+{"level":"debug","message":"[vite] invalidate /src/components/Leaderboard.tsx: Could not Fast Refresh (\"demoBoard\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793576973611}
+{"level":"debug","message":"[vite] hot updated: /src/components/Leaderboard.tsx","timestamp":1793576973611}
+{"level":"debug","message":"[vite] hot updated: /src/components/OutOfHealth.tsx","timestamp":1793576973612}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576973897}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576973898}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576973906}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576973907}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576973907}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793576974157}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576974157}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576974158}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793576974158}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793576974159}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793576974159}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793576974161}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793576974162}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793576974162}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576974162}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793576974163}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576974163}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793576974164}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793576974164}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793576974164}
+{"level":"debug","message":"[vite] invalidate /src/components/Leaderboard.tsx: Could not Fast Refresh (\"demoBoard\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793576974165}
+{"level":"debug","message":"[vite] hot updated: /src/components/Leaderboard.tsx","timestamp":1793576974165}
+{"level":"debug","message":"[vite] hot updated: /src/components/OutOfHealth.tsx","timestamp":1793576974166}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576974208}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793576974208}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576974214}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793576974214}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793576974214}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576995338}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576995338}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793576995341}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793576995341}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793577015150}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577015151}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793577015159}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577015159}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793577015937}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577015937}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793577015948}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577015948}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793577032037}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577032037}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793577032136}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793577032136}
+{"level":"debug","message":"[vite] connected.","timestamp":1793578448861}
+{"level":"debug","message":"[vite] connected.","timestamp":1793578449096}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793578568180}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793578568180}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793578568180}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793578568180}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793578568181}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793578568181}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793578568181}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793578568181}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793578568181}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793578568466}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793578568466}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793578568467}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793578568467}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793578568467}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793578568468}
+{"level":"debug","message":"[vite] connected.","timestamp":1793578583053}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579337099}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579337100}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579337100}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579337101}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579337101}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579337102}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579337103}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579337104}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579337105}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579337366}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579337367}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579337367}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579337367}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579337367}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579337367}
+{"level":"debug","message":"[vite] connected.","timestamp":1793579341189}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793579365507}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579523124}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579523126}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579523126}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579523127}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579523127}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579523131}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579523131}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579523131}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579523131}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579523418}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579883792}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579883792}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579883792}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579883793}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579883793}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579883793}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579883793}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579883793}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579883793}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579884082}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579884082}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579884083}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579884083}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579884083}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579884084}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579931516}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579931517}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579932276}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579932276}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579932276}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579932276}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579932277}
+{"level":"error","message":"Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.","timestamp":1793579933589}
+{"level":"debug","message":"[vite] invalidate /src/main.tsx: Could not Fast Refresh (\"true\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579933591}
+{"level":"debug","message":"[vite] hot updated: /src/main.tsx","timestamp":1793579933592}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579933592}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793579934888}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579934888}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579934890}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793579934891}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579934891}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579934892}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579934892}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579934897}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793579934898}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793579934898}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793579934898}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793579934899}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793579934899}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579934899}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793579934900}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579934900}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579934903}
+{"level":"error","message":"Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.","timestamp":1793579934943,"source":"https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:23596:15","stack":"NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChildFromContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:15387:23)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24436:21)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24505:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24516:15)\n    at commitDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24404:13)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24602:17)\n    at commitMutationEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24824:15)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24613:15)"}
+{"level":"error","message":"Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.","timestamp":1793579934959,"source":"https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:23596:15","stack":"NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.\n    at insertInContainerBefore (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:15377:23)\n    at insertOrAppendPlacementNodeIntoContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24336:15)\n    at insertOrAppendPlacementNodeIntoContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24344:15)\n    at insertOrAppendPlacementNodeIntoContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24344:15)\n    at commitPlacement (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24322:15)\n    at commitReconciliationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24834:15)\n    at commitMutationEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24656:15)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24613:15)\n    at commitMutationEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24824:15)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24613:15)"}
+{"level":"error","message":"Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.","timestamp":1793579934961,"source":"https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:23596:15","stack":"NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChildFromContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:15387:23)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24436:21)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24505:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24516:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24538:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24505:15)"}
+{"level":"error","message":"The above error occurred in the <Boundary> component:\n\n    at Boundary (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/src/App.tsx?t=1793579929259:45:1)\n    at App (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/src/App.tsx?t=1793579929263:112:23)\n    at Le (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:18792:42)\n    at Web3ContextProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:34419:30)\n    at ConnectKitProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:37909:29)\n    at QueryClientProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-GVQOMKFO.js?v=b73de5d6:39:30)\n    at Hydrate (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-2HXARX3D.js?v=b73de5d6:392:11)\n    at WagmiProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-2HXARX3D.js?v=b73de5d6:414:11)\n\nConsider adding an error boundary to your tree to customize error handling behavior.\nVisit https://reactjs.org/link/error-boundaries to learn more about error boundaries.","timestamp":1793579934962}
+{"level":"error","message":"The above error occurred in the <Boundary> component:\n\n    at Boundary (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/src/App.tsx?t=1793579929263:45:1)\n    at App (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/src/App.tsx?t=1793579929263:112:23)\n    at Le (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:18792:42)\n    at Web3ContextProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:34419:30)\n    at ConnectKitProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/connectkit.js?v=b73de5d6:37909:29)\n    at QueryClientProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-GVQOMKFO.js?v=b73de5d6:39:30)\n    at Hydrate (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-2HXARX3D.js?v=b73de5d6:392:11)\n    at WagmiProvider (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-2HXARX3D.js?v=b73de5d6:414:11)\n\nConsider adding an error boundary to your tree to customize error handling behavior.\nVisit https://reactjs.org/link/error-boundaries to learn more about error boundaries.","timestamp":1793579934962}
+{"level":"error","message":"The above error occurred in the <StrictMode> component:\n\n\nConsider adding an error boundary to your tree to customize error handling behavior.\nVisit https://reactjs.org/link/error-boundaries to learn more about error boundaries.","timestamp":1793579934963}
+{"level":"error","message":"Unhandled promise rejection: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChildFromContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:15387:23)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24436:21)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24505:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24516:15)\n    at commitDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24404:13)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24602:17)\n    at commitMutationEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24824:15)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24613:15)","timestamp":1793579934975,"stack":"NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChildFromContainer (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:15387:23)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24436:21)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24505:15)\n    at recursivelyTraverseDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24413:13)\n    at commitDeletionEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24516:15)\n    at commitDeletionEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24404:13)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24602:17)\n    at commitMutationEffectsOnFiber (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24824:15)\n    at recursivelyTraverseMutationEffects (https://ic8alm073ojdyw73qimho.preview.studio.arc.io/node_modules/.vite/deps/chunk-YI6NTZAD.js?v=b73de5d6:24613:15)"}
+{"level":"debug","message":"[vite] hot updated: /src/App.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/DailyScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ResultScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/SettingsScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PracticeScreen.tsx","timestamp":1793579934991}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ReplayScreen.tsx","timestamp":1793579934992}
+{"level":"debug","message":"[vite] invalidate /src/components/AccountPanel.tsx: Could not Fast Refresh (\"shortAddress\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports","timestamp":1793579934992}
+{"level":"debug","message":"[vite] hot updated: /src/components/AccountPanel.tsx","timestamp":1793579934992}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579934992}
+{"level":"debug","message":"[vite] hot updated: /src/screens/PlayScreen.tsx","timestamp":1793579934992}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579934992}
+{"level":"debug","message":"[vite] hot updated: /src/components/PayStatus.tsx","timestamp":1793579934993}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579935000}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579935000}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579935909}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579935909}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579935911}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579935911}
+{"level":"debug","message":"(previous line repeated 1× more)","timestamp":1793579935916}
+{"level":"debug","message":"[vite] hot updated: /src/screens/EditorScreen.tsx","timestamp":1793579935916}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ShopScreen.tsx","timestamp":1793579935916}
+{"level":"debug","message":"[vite] hot updated: /src/screens/FriendScreen.tsx","timestamp":1793579935916}
+{"level":"debug","message":"[vite] hot updated: /src/screens/MenuScreen.tsx","timestamp":1793579935916}
+{"level":"debug","message":"[vite] hot updated: /src/screens/ProfileScreen.tsx","timestamp":1793579935917}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793579935918}

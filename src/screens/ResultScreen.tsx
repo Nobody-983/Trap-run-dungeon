@@ -3,6 +3,7 @@ import { Award, Copy, Film, Home, RotateCcw, SkipForward, Sparkles } from 'lucid
 import { toast } from 'sonner'
 import { useNav, type Route } from '@/app/nav'
 import { playRoute } from '@/app/routes'
+import { useAuth } from '@/auth/useAuth'
 import { Leaderboard } from '@/components/Leaderboard'
 import { Bar, Button, Label, Stat } from '@/components/ui'
 import { PRACTICE_LEVELS } from '@/game/levels'
@@ -15,6 +16,7 @@ import { getCosmetic } from '@/progress/cosmetics'
 import type { ProgressReport } from '@/progress/progression'
 import { levelProgress } from '@/progress/profile'
 import { useProfile } from '@/progress/store'
+import { validateRunSubmission } from '@/services/validation/runValidator'
 
 interface Props {
   result: RunResult
@@ -34,14 +36,32 @@ const ADVICE: Record<HazardCause, string> = {
 export function ResultScreen({ result, report, dungeon, back, next, tip }: Props) {
   const { go } = useNav()
   const profile = useProfile()
+  const { signedInAddress } = useAuth()
   const win = result.outcome === 'win'
   const lv = levelProgress(profile.xp)
   const [shareBase, setShareBase] = useState<string | null>(null)
+  const [validatedScore, setValidatedScore] = useState<number | null>(null)
 
   useEffect(() => {
     sfx.play(report.levelAfter > report.levelBefore ? 'levelup' : 'click')
     void getShareBase().then(setShareBase)
   }, [report])
+
+  useEffect(() => {
+    if (!win) return
+    const account = signedInAddress ?? 'runner.testnet'
+    void validateRunSubmission({
+      dungeon,
+      playerNearAccount: account,
+      actions: result.actions,
+      clientElapsedMs: result.timeMs,
+      attemptId: `${result.dungeonId}-${Date.now()}`,
+    }).then((res) => {
+      if (res.ok) {
+        setValidatedScore(res.authoritativeScore)
+      }
+    })
+  }, [win, dungeon, signedInAddress, result])
 
   const topCause = (Object.entries(result.killedBy) as Array<[HazardCause, number]>).sort((a, b) => b[1] - a[1])[0]
   const retry = () => go(playRoute(dungeon, result.mode, back, next, tip))
@@ -137,7 +157,17 @@ export function ResultScreen({ result, report, dungeon, back, next, tip }: Props
           </div>
         )}
 
-        {win && <Leaderboard dungeonId={dungeon.id} par={result.par} you={{ name: profile.displayName, timeMs: profile.bests[dungeon.id]?.timeMs ?? result.timeMs }} />}
+        {win && (
+          <Leaderboard
+            dungeonId={dungeon.id}
+            par={result.par}
+            you={{
+              name: profile.displayName,
+              timeMs: profile.bests[dungeon.id]?.timeMs ?? result.timeMs,
+              score: validatedScore ?? result.score,
+            }}
+          />
+        )}
 
         <div className="flex flex-col gap-2">
           {win && next && (

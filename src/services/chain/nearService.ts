@@ -221,9 +221,9 @@ async function getChallengesByCreator(
 function decodeChallengeId(outcome: FinalExecutionOutcome): bigint {
   const success = (outcome.status as { SuccessValue?: string }).SuccessValue
   if (!success) throw new Error('Transaction succeeded without returning a challenge ID')
-  const json = JSON.parse(Buffer.from(success, 'base64').toString('utf8'))
-  if (typeof json !== 'string' || !/^[1-9]\d*$/.test(json)) throw new Error('Malformed challenge ID in transaction receipt')
-  return BigInt(json)
+  const raw: unknown = JSON.parse(Buffer.from(success, 'base64').toString('utf8'))
+  if (typeof raw !== 'string' || !/^[1-9]\d*$/.test(raw)) throw new Error('Malformed challenge ID in transaction receipt')
+  return BigInt(raw)
 }
 
 function assertTransactionSuccess(outcome: FinalExecutionOutcome): void {

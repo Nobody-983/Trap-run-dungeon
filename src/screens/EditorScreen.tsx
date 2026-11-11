@@ -20,11 +20,7 @@ import {
 import { sfx } from '@/lib/audio'
 import { DungeonCanvas } from '@/render/DungeonCanvas'
 import { profileStore, useProfile } from '@/progress/store'
-import { AuthCard } from '@/components/AccountPanel'
-import { PayStatus } from '@/components/PayStatus'
-import { SHOP_ADDRESS, dungeonHashOf, formatUsdcAmount } from '@/web3/shop'
-import { usePurchase } from '@/web3/usePurchase'
-import { useShopPrices } from '@/web3/useShopData'
+import { publishDungeon as publishToSupabase } from '@/services/supabase'
 import { PlayScreen } from './PlayScreen'
 
 const BUILD_MS = 30_000
@@ -46,9 +42,8 @@ export function EditorScreen() {
   const [cleared, setCleared] = useState<string | null>(null)
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState(() => `Dungeon #${profile.published.length + 1}`)
-  const prices = useShopPrices()
-  const pay = usePurchase()
-  const address = profile.wallets.find((w) => w.chain === 'arc')?.accountId ?? null
+  const [publishing, setPublishing] = useState(false)
+  const nearAccount = profile.wallets.find((w) => w.chain === 'near')?.accountId ?? 'runner.testnet'
   const [val, setVal] = useState<{ for: CellType[]; result: ValidationResult } | null>(null)
 
   const cellsRef = useRef(cells)
@@ -215,16 +210,11 @@ export function EditorScreen() {
     return <PlayScreen dungeon={testDungeon} mode="test" back={{ name: 'editor' }} next={null} tip="Test run: no XP, no stats. Prove it is fair." onFinish={onTestFinish} onExit={onTestExit} />
   }
 
-  const publish = async (localOnly = false) => {
+  const publish = async () => {
     if (!result?.ok) return
+    setPublishing(true)
     const layout = { cells, start: CREATOR_START, exit: CREATOR_EXIT }
     const id = `c-${layoutId(layout)}`
-    // Creating costs a fee, paid onchain once per dungeon. Re-publishing the same layout is free.
-    if (!localOnly && !profile.published.some((d) => d.id === id)) {
-      if (!prices.data) return
-      const paid = await pay.run({ kind: 'dungeon', label: name.trim() || 'Untitled', price: prices.data.createFee, call: { fn: 'registerDungeon', hash: dungeonHashOf(layout) } })
-      if (!paid) return
-    }
     const final: Dungeon = {
       ...dungeon,
       id,
@@ -238,8 +228,23 @@ export function EditorScreen() {
     const report = profileStore.publishDungeon(final)
     skipSave.current = true
     profileStore.saveDraft(null)
+
+    // Save to Supabase backend
+    try {
+      await publishToSupabase({
+        dungeon: final,
+        creatorNearAccount: nearAccount,
+        title: final.name,
+        par: final.par ?? 20,
+        difficulty: final.difficulty,
+      })
+    } catch {
+      // continues even if offline
+    }
+
+    setPublishing(false)
     sfx.play(report.levelAfter > report.levelBefore ? 'levelup' : 'win')
-    toast.success(`${localOnly ? 'Saved locally' : 'Published'} "${final.name}"${report.xpGained ? ` (+${report.xpGained} XP)` : ''}`)
+    toast.success(`Published "${final.name}"${report.xpGained ? ` (+${report.xpGained} XP)` : ''}`)
     nav.go({ name: 'friend' })
   }
 
@@ -367,8 +372,6 @@ export function EditorScreen() {
           {naming && result?.ok ? (
             <Panel>
               <Label className="mb-2">Name your dungeon</Label>
-              {!SHOP_ADDRESS && <Notice tone="error">Publishing needs the shop contract, which is not live yet. You can still build and test.</Notice>}
-              {SHOP_ADDRESS && !address && <AuthCard reason="Publishing a dungeon costs a small USDC fee, so you need an account." />}
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 24))}
@@ -378,18 +381,12 @@ export function EditorScreen() {
                 aria-label="Dungeon name"
               />
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="primary" onClick={() => void publish(false)} disabled={!SHOP_ADDRESS || !address || !prices.data || pay.busy}>
-                  <Upload size={16} /> {prices.data && !profile.published.some((d) => d.id === `c-${layoutId({ cells, start: CREATOR_START, exit: CREATOR_EXIT })}`) ? `Pay ${formatUsdcAmount(prices.data.createFee)} and publish` : 'Publish'}
+                <Button variant="volt" onClick={() => void publish()} disabled={publishing || !name.trim()}>
+                  {publishing ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Save & Publish
                 </Button>
-                <Button onClick={() => setNaming(false)} disabled={pay.busy}>
+                <Button onClick={() => setNaming(false)} disabled={publishing}>
                   Cancel
                 </Button>
-                <Button className="col-span-2" variant="volt" onClick={() => void publish(true)} disabled={pay.busy}>
-                  Save locally for NEAR testnet pilot
-                </Button>
-              </div>
-              <div className="mt-3">
-                <PayStatus step={pay.step} error={pay.error} />
               </div>
             </Panel>
           ) : (

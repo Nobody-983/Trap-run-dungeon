@@ -1,54 +1,113 @@
 # TRAP//RUN
 
-A dungeon-building and escape game for the browser. Build a 9x9 dungeon of traps, doors and switches, then race to escape dungeons made by the game, the daily challenge, or your friends.
+> "Build a trap. Escape someone else's."
 
-Built with [Arc Studio](https://studio.arc.io)
+A competitive, deterministic dungeon-building and escape game for the browser. Build 9x9 tactical dungeons loaded with pulse beams, arrow launchers, sentries, and pressure switches, then compete on verified global and daily leaderboards.
 
-## Features
+Powered by **native NEAR Protocol** (Testnet) for immutable challenge ownership & registration, and **Supabase PostgreSQL** for persistent leaderboards, profiles, and server-side replay verification.
 
-- Practice: 12 handmade dungeons that get harder as you go.
-- Daily Challenge: one dungeon per day for everyone, with a streak.
-- Challenge a Friend: preserve Arc `TR1` challenges or register and verify canonical `TRI1` challenge hashes on NEAR testnet.
-- Creator Mode: 30 second build clock, resource budget, test run, and a solver check so every published dungeon can be escaped.
-- XP, levels, best times, achievements and unlockable cosmetics, all earned through play.
-- Wallet sign-up and sign-in on Arc Testnet (guests can still play). Each run costs 1 health: 5 free per day, +2 for clearing the daily challenge, more from the shop.
-- Shop: buy health packs and cosmetic skins with test USDC. Creators pay a small USDC fee to publish a dungeon and to create a friend challenge; friends play free.
-- Keyboard, touch pad and swipe controls, sound effects, replays of your runs.
+---
 
-The game is fully playable with no wallet. MyNearWallet can be connected separately for the NEAR testnet challenge registry; Stellar remains a mock adapter.
+## ⚡ Key Features
 
-## Tech stack
+- **Practice Campaign:** 12 handmade, solver-verified levels scaling in difficulty.
+- **Creator Mode:** 30-second build clock, budget constraints, mandatory solver & test-run clearance.
+- **NEAR Protocol Integration:** Register dungeon challenges on-chain with deterministic SHA-256 canonical hashes (`TRI1` share codes).
+- **Competitive Fair-Play Engine:** Server-side deterministic re-simulation of player action traces (`stepGame`) to prevent client score spoofing.
+- **Supabase Backend:** Indexed leaderboards (Global, Daily, Per-Dungeon), player profiles, attempt histories, and daily challenges.
+- **Progression & Armory:** Earn XP, level up, unlock cosmetics, and track personal bests.
+- **Wallet-Based Identity:** Native NEAR Wallet Selector (MyNearWallet) with guest fallback.
 
-React, TypeScript, Vite, Tailwind CSS, wagmi and viem, canvas rendering, Web Audio, Solidity (Foundry) for the shop contract in `contracts/`.
+---
 
-## Development
+## 🛠 Tech Stack
 
-Prerequisites: [Bun](https://bun.sh).
+- **Frontend:** React 18, Vite, TypeScript, Tailwind CSS, Lucide Icons, Canvas 2D Renderer, Web Audio API
+- **Blockchain:** Native NEAR Protocol (Testnet), Rust smart contracts compiled to WebAssembly (`near-sdk` v5.1.0), `@near-wallet-selector`
+- **Backend & Database:** Supabase PostgreSQL with Row Level Security (RLS), migrations, indexed views, and stored functions
+- **Verification Engine:** Pure deterministic TypeScript engine with human-speed gating (>=50ms/move) and idempotency controls
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh) (v1.1+) or Node.js (v20+)
+- [Rust](https://rustup.rs) (1.70+) with `wasm32-unknown-unknown` target (for contract builds)
+
+### Installation & Development
 
 ```bash
+# Install dependencies
 bun install
-bun run dev      # start the dev server
-bun run check    # lint and typecheck
-bun scripts/verify-levels.ts   # solve every built-in level
-bun run identity:test:ts       # canonical identity TypeScript vectors
-bun run identity:test:rust     # independent Rust compatibility vectors
-bun run near:registry:test     # native NEAR registry tests
-bun run near:registry:build    # release WASM
-bun run near:registry:client-test
+
+# Start local development server
+bun run dev
+
+# Run typechecker
+bun run typecheck
+
+# Run linter
+bun run lint
 ```
 
-The versioned dungeon identity and future NEAR share-code specification is documented in `docs/canonical-dungeon-identity.md`. It is separate from the deployed Arc contract's legacy hash and `TR1` share codes.
+---
 
-### Environment variables
+## 🧪 Test Suite
 
-- `VITE_SHOP_ADDRESS`: address of the deployed `TrapRunShop` contract on Arc Testnet (public). Shop features are switched off while it is unset.
-- `VITE_NETWORK`: set to `mainnet` to use Arc mainnet. Leave unset for testnet.
-- `VITE_SHOP_ADDRESS_MAINNET`: address of the `TrapRunShop` contract on Arc mainnet (public). Only read when `VITE_NETWORK=mainnet`.
-- `VITE_NEAR_NETWORK`: must be `testnet` for the pilot.
-- `VITE_NEAR_REGISTRY_ACCOUNT`: deployed NEAR testnet registry account (public). NEAR controls are disabled while unset.
-- `VITE_NEAR_RPC_URL`: optional NEAR testnet RPC override.
-- `VITE_NEAR_STORAGE_DEPOSIT_YOCTO`: optional positive storage-deposit buffer in yoctoNEAR.
+Run the full verification matrix:
 
-See `TESTNET.md` for the deployment boundary and verification procedure.
+```bash
+# 1. Server-side deterministic replay validator tests
+bun test scripts/run-validator.test.ts
 
-For Arc mainnet, follow `docs/mainnet-launch.md`. The NEAR pilot remains testnet-only.
+# 2. NEAR Rust smart contract unit tests
+bun run near:registry:test
+
+# 3. Compile release WebAssembly contract artifact
+bun run near:registry:build
+
+# 4. NEAR registry TypeScript client integration tests
+bun run near:registry:client-test
+
+# 5. Canonical identity & hashing compatibility tests (TS + Rust)
+bun run identity:test:ts
+bun run identity:test:rust
+
+# 6. Verify campaign level solvability
+bun run verify:levels
+
+# 7. Production bundle build
+bun run build
+```
+
+---
+
+## 📖 Architecture & Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — System component architecture, data flow, and separation of concerns.
+- [SECURITY.md](SECURITY.md) — Security model, fair-play validation pipeline, RLS policies, and anti-cheat controls.
+- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — Database schema, migration runbook, and views.
+- [NEAR_TESTNET.md](NEAR_TESTNET.md) — NEAR contract methods, deployment parameters, and view/call instructions.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — Production deployment guide for Web, Contract, and Supabase.
+- [TEST_REPORT.md](TEST_REPORT.md) — Test matrix and verification proof.
+- [MIGRATION_PLAN.md](MIGRATION_PLAN.md) — Arc-to-NEAR migration execution record.
+- [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) — Phase-by-phase implementation status.
+
+---
+
+## 🔐 Environment Variables
+
+Copy `.env.example` to `.env`:
+
+```env
+# NEAR Testnet
+VITE_NEAR_NETWORK=testnet
+VITE_NEAR_REGISTRY_CONTRACT=traprun-registry.testnet
+VITE_NEAR_RPC_URL=https://rpc.testnet.near.org
+
+# Supabase Backend
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```

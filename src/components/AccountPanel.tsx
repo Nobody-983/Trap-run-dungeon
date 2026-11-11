@@ -1,4 +1,4 @@
-import { AlertTriangle, Heart, Loader2, LogIn, LogOut, Wallet } from 'lucide-react'
+import { Heart, Loader2, LogIn, LogOut, Wallet } from 'lucide-react'
 import { useNav } from '@/app/nav'
 import { useAuth } from '@/auth/useAuth'
 import { rollDay, totalHealth, FREE_HEALTH_PER_DAY } from '@/progress/health'
@@ -31,8 +31,8 @@ export function AccountChip() {
   const p = useProfile()
   if (!auth.signedInAddress) {
     return (
-      <Button size="sm" variant="volt" onClick={auth.signIn} disabled={auth.phase === 'signing'}>
-        {auth.phase === 'signing' ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />} Sign in
+      <Button size="sm" variant="volt" onClick={() => void auth.signIn()} disabled={auth.phase === 'connecting'}>
+        {auth.phase === 'connecting' ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />} Sign in
       </Button>
     )
   }
@@ -58,8 +58,8 @@ export function AuthCard({ reason }: { reason?: string }) {
         </p>
       </div>
       {auth.error && <Notice tone="error">{auth.error}</Notice>}
-      <Button variant="volt" size="lg" onClick={auth.signIn} disabled={auth.phase === 'signing'}>
-        {auth.phase === 'signing' ? (
+      <Button variant="volt" size="lg" onClick={() => void auth.signIn()} disabled={auth.phase === 'connecting'}>
+        {auth.phase === 'connecting' ? (
           <>
             <Loader2 size={16} className="animate-spin" /> Confirm in your wallet
           </>
@@ -80,20 +80,13 @@ export function SignedInDetails() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2 text-sm">
-        <span className="text-zinc-400">Arc account</span>
-        <span className="tabular font-mono text-xs">{shortAddress(auth.signedInAddress)}</span>
+        <span className="text-zinc-400">NEAR account</span>
+        <span className="tabular font-mono text-xs text-acid-300">{auth.signedInAddress}</span>
       </div>
-      {auth.walletMismatch && (
-        <Notice tone="error">
-          <span className="flex items-start gap-2">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0" /> Your connected wallet is not the one you signed in with. Switch back to {shortAddress(auth.signedInAddress)} to make payments.
-          </span>
-        </Notice>
-      )}
       <div className="flex items-center justify-between text-xs text-zinc-500">
         <span>Free health: {FREE_HEALTH_PER_DAY} per day</span>
-        <Button size="sm" onClick={auth.signOut}>
-          <LogOut size={14} /> Sign out
+        <Button size="sm" onClick={() => void auth.signOut()}>
+          <LogOut size={14} /> Disconnect
         </Button>
       </div>
       <span className="sr-only">{p.displayName}</span>

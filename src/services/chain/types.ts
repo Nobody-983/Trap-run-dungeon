@@ -7,7 +7,7 @@
  * wallet identities, each proven by its own signed challenge.
  */
 
-export type ChainId = 'arc' | 'near' | 'stellar'
+export type ChainId = 'near'
 export type NetworkKind = 'mainnet' | 'testnet'
 
 /** A wallet account on one specific chain. */

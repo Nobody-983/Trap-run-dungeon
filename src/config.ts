@@ -1,24 +1,14 @@
 /**
- * wagmi configuration
- * Built with Arc Studio — https://studio.arc.io
+ * TRAP//RUN Application Configuration
+ * Native NEAR Protocol & Supabase
  */
 
-import { http, createConfig } from 'wagmi'
-import { mainnet } from 'wagmi/chains'
-import { arc, arcTestnet } from 'viem/chains'
-import { injected } from 'wagmi/connectors'
-import { registerChain } from './tracing'
+import { NEAR_CONFIG } from './services/chain/nearConfig'
+import { isSupabaseConfigured } from './services/supabase/client'
 
-// Pre-register chain RPC URLs so trace events show correct chain names immediately
-registerChain(arcTestnet.id, arcTestnet.rpcUrls.default.http[0])
-registerChain(arc.id, arc.rpcUrls.default.http[0])
-
-export const config = createConfig({
-  chains: [arcTestnet, arc, mainnet], // mainnet needed for ENS resolution
-  connectors: [injected()],
-  transports: {
-    [arcTestnet.id]: http(arcTestnet.rpcUrls.default.http[0]),
-    [arc.id]: http(arc.rpcUrls.default.http[0]),
-    [mainnet.id]: http(), // ENS resolution uses mainnet
-  },
-})
+export const APP_CONFIG = {
+  name: 'TRAP//RUN',
+  version: '1.0.0',
+  near: NEAR_CONFIG,
+  supabaseConfigured: isSupabaseConfigured,
+}

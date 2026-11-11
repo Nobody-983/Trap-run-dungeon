@@ -1,6 +1,5 @@
 import { profileStore } from '@/progress/store'
 import { nearServices } from './chain/near'
-import { createStellarTransactionMock, createStellarWalletMock } from './chain/adapters/stellar'
 import { MockIdentityLinkService, RoutingTransactionService, WalletRegistry } from './chain/registry'
 import type {
   AchievementRecord,
@@ -47,10 +46,8 @@ class LocalAchievements implements AchievementService {
 
 const wallets = new WalletRegistry()
 wallets.register(nearServices.wallet)
-wallets.register(createStellarWalletMock())
 
 const transactions = new RoutingTransactionService()
-transactions.register(createStellarTransactionMock())
 
 export const services = {
   wallets,

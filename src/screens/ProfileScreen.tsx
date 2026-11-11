@@ -1,18 +1,15 @@
 import { useState } from 'react'
-import { Award, ExternalLink, Lock, Plug, Receipt, Trophy } from 'lucide-react'
+import { Award, ExternalLink, Lock, Plug, Trophy } from 'lucide-react'
 import { useNav } from '@/app/nav'
 import { AuthCard, SignedInDetails } from '@/components/AccountPanel'
 import { Bar, Button, Label, Panel, Screen, Stat } from '@/components/ui'
 import { PRACTICE_LEVELS } from '@/game/levels'
-import { formatTime } from '@/game/result'
 import { ACHIEVEMENTS } from '@/progress/achievements'
 import { COSMETICS, describeRule, type Cosmetic } from '@/progress/cosmetics'
 import { levelProgress } from '@/progress/profile'
 import { profileStore, useProfile } from '@/progress/store'
-import { services } from '@/services'
-import { NETWORK_LABEL } from '@/web3/network'
-import { formatUsdcAmount, txUrl } from '@/web3/shop'
-import { sfx } from '@/lib/audio'
+import { NEAR_NETWORK_LABEL, nearTxUrl } from '@/services/chain/near'
+import { upsertProfile } from '@/services/supabase'
 
 function Swatch({ c }: { c: Cosmetic }) {
   return <span className="h-8 w-8 shrink-0 rounded-lg" style={{ background: `linear-gradient(135deg, ${c.color}, ${c.accent})`, boxShadow: `0 0 14px ${c.color}66` }} />
@@ -25,7 +22,14 @@ export function ProfileScreen() {
   const [name, setName] = useState(p.displayName)
   const rate = p.runs > 0 ? Math.round((p.wins / p.runs) * 100) : 0
   const cleared = PRACTICE_LEVELS.filter((l) => (p.clears[l.dungeon.id] ?? 0) > 0).length
-  const minutes = Math.floor(p.playMs / 60000)
+  const nearWallet = p.wallets.find((w) => w.chain === 'near')?.accountId ?? null
+
+  const saveName = async () => {
+    profileStore.setName(name)
+    if (nearWallet) {
+      await upsertProfile({ nearAccountId: nearWallet, displayName: name })
+    }
+  }
 
   return (
     <Screen title="Profile" onBack={() => go({ name: 'menu' })}>
@@ -37,7 +41,7 @@ export function ProfileScreen() {
             className="mt-1 flex gap-2"
             onSubmit={(e) => {
               e.preventDefault()
-              profileStore.setName(name)
+              void saveName()
             }}
           >
             <input
@@ -64,7 +68,7 @@ export function ProfileScreen() {
               </div>
             </div>
           </div>
-          <p className="mt-3 text-xs text-zinc-500">XP, levels and leaderboard times come from skill and consistency only. Nothing you buy affects them.</p>
+          <p className="mt-3 text-xs text-zinc-500">XP, levels and leaderboard times come from skill and consistency only. Profile syncs securely with your NEAR account and Supabase.</p>
           <div className="mt-3">
             <SignedInDetails />
           </div>
@@ -98,75 +102,43 @@ export function ProfileScreen() {
               <div className="tabular font-pixel text-lg text-zinc-50">{p.published.length}</div>published
             </div>
             <div>
-              <div className="tabular font-pixel text-lg text-zinc-50">{minutes}</div>min played
+              <div className="tabular font-pixel text-lg text-zinc-50">{p.nearChallenges.length}</div>NEAR on-chain
             </div>
           </div>
         </Panel>
 
         <Panel>
           <Label className="mb-3 flex items-center gap-1">
-            <Trophy size={12} /> Best escape times
+            <Trophy size={12} /> Cosmetics unlocked
           </Label>
-          {Object.keys(p.bests).length === 0 ? (
-            <p className="text-sm text-zinc-400">No escapes yet. Clear a practice dungeon to set your first time.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {PRACTICE_LEVELS.filter((l) => p.bests[l.dungeon.id]).map((l) => (
-                <li key={l.dungeon.id} className="flex justify-between rounded-lg bg-ink-900/60 px-3 py-2">
-                  <span>{l.dungeon.name}</span>
-                  <span className="tabular font-pixel text-xs text-acid-500">{formatTime(p.bests[l.dungeon.id].timeMs)}</span>
-                </li>
-              ))}
-              {Object.entries(p.daily)
-                .slice(-3)
-                .map(([k, v]) => (
-                  <li key={k} className="flex justify-between rounded-lg bg-ink-900/60 px-3 py-2">
-                    <span>Daily {k}</span>
-                    <span className="tabular font-pixel text-xs text-ember-400">{formatTime(v.timeMs)}</span>
-                  </li>
-                ))}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel>
-          <Label className="mb-3">Cosmetics</Label>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {COSMETICS.map((c) => {
-              const owned = p.unlocked.includes(c.id)
-              const on = p.equipped[c.kind] === c.id
+              const unlocked = p.unlocked.includes(c.id) || c.rule.kind === 'default'
               return (
-                <button
-                  key={c.id}
-                  disabled={!owned}
-                  onClick={() => {
-                    sfx.play('click')
-                    profileStore.equip(c.kind, c.id)
-                  }}
-                  className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? 'border-acid-500 bg-acid-500/10' : 'border-ink-500 bg-ink-900/50'} ${owned ? 'hover:border-volt-400' : 'opacity-55'}`}
-                >
-                  {owned ? <Swatch c={c} /> : <Lock className="h-8 w-8 shrink-0 p-1.5 text-zinc-500" />}
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{c.name}</div>
-                    <div className="text-xs text-zinc-500">
-                      {c.kind === 'skin' ? 'Skin' : 'Trail'} · {on ? 'Equipped' : owned ? 'Tap to equip' : describeRule(c.rule)}
+                <li key={c.id} className={`flex items-center gap-3 rounded-lg p-2 ${unlocked ? 'bg-ink-900/60' : 'bg-ink-900/20 opacity-50'}`}>
+                  <Swatch c={c} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 text-sm font-semibold">
+                      <span className="truncate">{c.name}</span>
+                      {!unlocked && <Lock size={12} className="shrink-0 text-zinc-500" />}
                     </div>
+                    <div className="truncate text-xs text-zinc-400">{describeRule(c.rule)}</div>
                   </div>
-                </button>
+                </li>
               )
             })}
-          </div>
+          </ul>
         </Panel>
 
         <Panel>
           <Label className="mb-3 flex items-center gap-1">
             <Award size={12} /> Achievements
           </Label>
-          <ul className="grid gap-2 sm:grid-cols-2">
+          <ul className="flex flex-col gap-2">
             {ACHIEVEMENTS.map((a) => {
-              const got = p.achievements.some((r) => r.id === a.id)
+              const unlocked = p.achievements.some((x) => x.id === a.id)
               return (
-                <li key={a.id} className={`rounded-xl border p-3 ${got ? 'border-volt-500/50 bg-volt-500/10' : 'border-ink-600 bg-ink-900/40 opacity-60'}`}>
+                <li key={a.id} className={`rounded-lg p-2.5 ${unlocked ? 'bg-acid-500/10 text-acid-300 ring-1 ring-acid-500/30' : 'bg-ink-900/40 text-zinc-500'}`}>
                   <div className="text-sm font-semibold">{a.title}</div>
                   <div className="text-xs text-zinc-400">{a.description}</div>
                 </li>
@@ -175,19 +147,19 @@ export function ProfileScreen() {
           </ul>
         </Panel>
 
-        {p.payments.length > 0 && (
+        {p.nearChallenges.length > 0 && (
           <Panel>
             <Label className="mb-3 flex items-center gap-1">
-              <Receipt size={12} /> Payments
+              <ExternalLink size={12} /> Registered NEAR Challenges
             </Label>
             <ul className="flex flex-col gap-1 text-sm">
-              {p.payments.slice(0, 8).map((r) => (
-                <li key={r.txHash} className="flex items-center justify-between gap-2 rounded-lg bg-ink-900/60 px-3 py-2">
-                  <span className="truncate">
-                    <span className="capitalize">{r.kind}</span> · {r.label}
+              {p.nearChallenges.slice(0, 8).map((r) => (
+                <li key={r.challengeId} className="flex items-center justify-between gap-2 rounded-lg bg-ink-900/60 px-3 py-2">
+                  <span className="truncate font-mono text-xs text-zinc-300">
+                    Challenge #{r.challengeId} · {r.shareCode.slice(0, 18)}...
                   </span>
-                  <a href={txUrl(r.txHash)} target="_blank" rel="noopener noreferrer" className="tabular inline-flex shrink-0 items-center gap-1 font-pixel text-xs text-acid-500">
-                    {formatUsdcAmount(BigInt(r.amount))} USDC <ExternalLink size={11} />
+                  <a href={nearTxUrl(r.txHash)} target="_blank" rel="noopener noreferrer" className="tabular inline-flex shrink-0 items-center gap-1 font-pixel text-xs text-acid-500 hover:underline">
+                    Receipt <ExternalLink size={11} />
                   </a>
                 </li>
               ))}
@@ -197,20 +169,18 @@ export function ProfileScreen() {
 
         <Panel>
           <Label className="mb-2 flex items-center gap-1">
-            <Plug size={12} /> Wallets
+            <Plug size={12} /> Blockchain Identity
           </Label>
-          <p className="text-sm text-zinc-300">Your Arc wallet remains your game account. MyNearWallet can be connected separately in Challenge a Friend for testnet registry actions; gameplay remains available without either wallet.</p>
+          <p className="text-sm text-zinc-300">
+            Native NEAR Protocol ({NEAR_NETWORK_LABEL}). Your NEAR account is your verified creator identity.
+          </p>
           <ul className="mt-3 flex flex-col gap-1 text-sm">
             <li className="flex justify-between rounded-lg bg-ink-900/60 px-3 py-2">
-              <span>{NETWORK_LABEL}</span>
-              <span className={p.wallets.some((w) => w.chain === 'arc') ? 'text-acid-300' : 'text-zinc-500'}>{p.wallets.some((w) => w.chain === 'arc') ? 'Signed in' : 'Not signed in'}</span>
+              <span>{NEAR_NETWORK_LABEL}</span>
+              <span className={nearWallet ? 'text-acid-300 font-mono text-xs' : 'text-zinc-500'}>
+                {nearWallet ?? 'Not connected'}
+              </span>
             </li>
-            {services.wallets.list().map((w) => (
-              <li key={w.chain} className="flex justify-between rounded-lg bg-ink-900/60 px-3 py-2">
-                <span>{w.displayName}</span>
-                <span className={w.chain === 'near' ? 'text-acid-300' : 'text-zinc-500'}>{w.chain === 'near' ? 'Available in challenges' : 'Not available yet'}</span>
-              </li>
-            ))}
           </ul>
         </Panel>
       </div>

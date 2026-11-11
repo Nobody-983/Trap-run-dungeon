@@ -1,81 +1,80 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useModal } from 'connectkit'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useAccount, useDisconnect, usePublicClient, useSignMessage, useSwitchChain } from 'wagmi'
 import { profileStore, useProfile } from '@/progress/store'
-import { ARC_CHAIN, ARC_CHAIN_ID } from '@/web3/shop'
-import { buildSignInMessage, clearSession, writeSession } from './session'
+import { nearServices } from '@/services/chain/near'
+import { upsertProfile } from '@/services/supabase'
+import { clearSession, createNearSession, readSession, writeSession } from './session'
 
-export type AuthPhase = 'idle' | 'signing' | 'error'
+export type AuthPhase = 'idle' | 'connecting' | 'error'
 
-/** Wallet sign-up and sign-in. A new wallet creates a profile; a known wallet loads its profile. */
 export function useAuth() {
   const profile = useProfile()
-  const account = useAccount()
-  const { setOpen } = useModal()
-  const { signMessageAsync } = useSignMessage()
-  const { switchChainAsync } = useSwitchChain()
-  const { disconnect } = useDisconnect()
-  const client = usePublicClient({ chainId: ARC_CHAIN_ID })
   const [phase, setPhase] = useState<AuthPhase>('idle')
   const [error, setError] = useState<string | null>(null)
-  const wantSignIn = useRef(false)
+  const [nearAccount, setNearAccount] = useState<string | null>(() => {
+    return nearServices.wallet.accountId ?? readSession()?.accountId ?? null
+  })
 
-  const signedInAddress = profile.wallets.find((w) => w.chain === 'arc' && w.verified)?.accountId ?? null
-  const connected = account.isConnected && account.address ? account.address : null
-  const walletMismatch = Boolean(signedInAddress && connected && connected.toLowerCase() !== signedInAddress.toLowerCase())
-
-  const complete = useCallback(
-    async (address: `0x${string}`) => {
-      setError(null)
-      try {
-        if (account.chainId !== ARC_CHAIN_ID) await switchChainAsync({ chainId: ARC_CHAIN_ID })
-        setPhase('signing')
-        const isNew = !profileStore.hasAccount(address)
-        const { message, issuedAt, expiresAt } = buildSignInMessage(address, ARC_CHAIN.name, ARC_CHAIN_ID)
-        const signature = await signMessageAsync({ message })
-        if (client) {
-          const ok = await client.verifyMessage({ address, message, signature })
-          if (!ok) throw new Error('The signature could not be verified.')
-        }
-        writeSession({ address, message, signature, issuedAt, expiresAt })
-        profileStore.switchTo(address)
-        toast.success(isNew ? 'Account created. Welcome to TRAP//RUN.' : 'Signed in.')
-        setPhase('idle')
-      } catch (err) {
-        const e = err as { code?: number; message?: string; shortMessage?: string }
-        const rejected = e.code === 4001 || /user rejected|user denied/i.test(`${e.shortMessage ?? ''} ${e.message ?? ''}`)
-        setPhase(rejected ? 'idle' : 'error')
-        if (!rejected) setError(err instanceof Error ? err.message : 'Sign-in failed.')
-      }
-    },
-    [account.chainId, client, signMessageAsync, switchChainAsync],
-  )
-
-  // After the wallet modal connects, finish signing in.
+  // Restore session on mount
   useEffect(() => {
-    if (wantSignIn.current && connected) {
-      wantSignIn.current = false
-      void complete(connected)
+    let mounted = true
+    void nearServices.wallet.restore().then((session) => {
+      if (!mounted) return
+      if (session) {
+        setNearAccount(session.identity.accountId)
+        writeSession(createNearSession(session.identity.accountId))
+        profileStore.switchTo(session.identity.accountId)
+        void upsertProfile({ nearAccountId: session.identity.accountId, displayName: profile.displayName })
+      }
+    })
+    return () => {
+      mounted = false
     }
-  }, [connected, complete])
+  }, [profile.displayName])
 
-  const signIn = useCallback(() => {
+  const signIn = useCallback(async () => {
     setError(null)
-    if (connected) {
-      void complete(connected)
-      return
+    setPhase('connecting')
+    try {
+      const session = await nearServices.wallet.connect()
+      const accountId = session.identity.accountId
+      setNearAccount(accountId)
+      writeSession(createNearSession(accountId))
+      profileStore.switchTo(accountId)
+      await upsertProfile({ nearAccountId: accountId, displayName: profile.displayName })
+      toast.success(`Connected as ${accountId}`)
+      setPhase('idle')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Connection failed'
+      if (!msg.toLowerCase().includes('cancel') && !msg.toLowerCase().includes('closed')) {
+        setError(msg)
+        toast.error(msg)
+      }
+      setPhase('idle')
     }
-    wantSignIn.current = true
-    setOpen(true)
-  }, [connected, complete, setOpen])
+  }, [profile.displayName])
 
-  const signOut = useCallback(() => {
+  const signOut = useCallback(async () => {
+    try {
+      await nearServices.wallet.disconnect()
+    } catch {
+      // ignore
+    }
     clearSession()
+    setNearAccount(null)
     profileStore.switchTo(null)
-    disconnect()
     setPhase('idle')
-  }, [disconnect])
+    toast.info('Disconnected wallet')
+  }, [])
 
-  return { signedInAddress, connected, walletMismatch, phase: signedInAddress ? 'idle' : phase, error, signIn, signOut, isNewWallet: connected ? !profileStore.hasAccount(connected) : true }
+  return {
+    signedInAddress: nearAccount,
+    connected: nearAccount,
+    walletMismatch: false,
+    phase,
+    error,
+    signIn,
+    signOut,
+    isNewWallet: nearAccount ? !profileStore.hasAccount(nearAccount) : true,
+  }
 }

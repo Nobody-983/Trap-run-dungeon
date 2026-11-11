@@ -1,11 +1,10 @@
 import { Component, useEffect, useMemo, useState, type ErrorInfo, type ReactNode } from 'react'
 import { inbox } from '@/app/inbox'
 import { NavContext, type Route } from '@/app/nav'
+import { useAuth } from '@/auth/useAuth'
 import { Button } from '@/components/ui'
 import { sfx } from '@/lib/audio'
-import { useAuth } from '@/auth/useAuth'
 import { profileStore, useProfile } from '@/progress/store'
-import { ChainSync } from '@/web3/useShopData'
 import { DailyScreen } from '@/screens/DailyScreen'
 import { EditorScreen } from '@/screens/EditorScreen'
 import { FriendScreen } from '@/screens/FriendScreen'
@@ -64,7 +63,7 @@ export default function App() {
   const [route, go] = useState<Route>(bootRoute)
   const profile = useProfile()
   const { sound, volume, reducedMotion } = profile.settings
-  const { signedInAddress } = useAuth()
+  useAuth()
 
   // Free health refills at UTC midnight even if the app stays open.
   useEffect(() => {
@@ -129,7 +128,6 @@ export default function App() {
 
   return (
     <NavContext.Provider value={nav}>
-      <ChainSync address={signedInAddress} />
       <Boundary onReset={() => go({ name: 'menu' })}>{screen}</Boundary>
     </NavContext.Provider>
   )

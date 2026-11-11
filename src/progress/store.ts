@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react'
 import { readSession } from '@/auth/session'
-import { IS_MAINNET, NETWORK_STORAGE_SUFFIX } from '@/web3/network'
 import type { RunResult } from '@/game/result'
 import type { Dungeon } from '@/game/types'
 import { COSMETICS } from './cosmetics'
@@ -19,8 +18,8 @@ import {
 
 const GUEST_KEY = 'trap-run:profile:v1'
 const BACKUP_KEY = 'trap-run:profile:corrupt'
-// Wallet profiles are kept per network so testnet and mainnet purchases never mix.
-const keyFor = (address: string | null): string => (address ? `${GUEST_KEY}${NETWORK_STORAGE_SUFFIX}:${address.toLowerCase()}` : GUEST_KEY)
+// Profiles are keyed by NEAR account ID
+const keyFor = (address: string | null): string => (address ? `${GUEST_KEY}:near:${address.toLowerCase()}` : GUEST_KEY)
 
 export interface StorageInfo {
   /** Set when saved data could not be read or written. */
@@ -28,7 +27,7 @@ export interface StorageInfo {
 }
 
 let storageInfo: StorageInfo = { error: null }
-let activeAddress: string | null = readSession()?.address.toLowerCase() ?? null
+let activeAddress: string | null = readSession()?.accountId.toLowerCase() ?? null
 let profile: Profile = loadOrCreate(activeAddress)
 const listeners = new Set<() => void>()
 const infoListeners = new Set<() => void>()
@@ -53,7 +52,7 @@ function loadOrCreate(address: string | null): Profile {
     if (guest && base !== fresh) localStorage.setItem(GUEST_KEY, JSON.stringify({ ...guest, claimedBy: address }))
     return {
       ...base,
-      wallets: [{ chain: 'arc', network: IS_MAINNET ? 'mainnet' : 'testnet', accountId: address, verified: true, linkedAt: Date.now() }],
+      wallets: [{ chain: 'near', network: 'testnet', accountId: address, verified: true, linkedAt: Date.now() }],
     }
   } catch (err) {
     try {
@@ -189,7 +188,7 @@ export const profileStore = {
     const fresh = createProfile()
     commit(
       activeAddress
-        ? { ...fresh, wallets: [{ chain: 'arc', network: IS_MAINNET ? 'mainnet' : 'testnet', accountId: activeAddress, verified: true, linkedAt: Date.now() }] }
+        ? { ...fresh, wallets: [{ chain: 'near', network: 'testnet', accountId: activeAddress, verified: true, linkedAt: Date.now() }] }
         : fresh,
     )
   },

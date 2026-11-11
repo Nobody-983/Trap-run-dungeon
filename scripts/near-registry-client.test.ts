@@ -4,6 +4,11 @@ import test from 'node:test'
 import { canonicalDungeonHash, hexToBytes, type CanonicalDungeonInput } from '../src/game/canonicalIdentity.ts'
 import {
   buildGetChallengeCall,
+  buildGetChallengeByHashCall,
+  buildIsDungeonRegisteredCall,
+  buildVerifyCreatorCall,
+  buildGetChallengeCountCall,
+  buildUpdateMetadataCall,
   buildGetChallengesByCreatorCall,
   buildRegisterChallengeCall,
   decodeNearRegistryChallenge,
@@ -114,5 +119,32 @@ void test('verification rejects creator, hash, schema, and network mismatches', 
 void test('challenge lookup rejects zero and u64 overflow', () => {
   assert.throws(() => buildGetChallengeCall(fixture.registry, 0n), /greater than zero/)
   assert.throws(() => buildGetChallengeCall(fixture.registry, 1n << 64n), /unsigned 64-bit/)
+})
+
+void test('new contract call builders support hash lookup, creator verification, count, and metadata updates', async () => {
+  const hash = await canonicalDungeonHash(dungeon)
+  const byHash = buildGetChallengeByHashCall(fixture.registry, hash)
+  assert.equal(byHash.methodName, 'get_challenge_by_hash')
+  assert.equal(byHash.contractId, fixture.registry)
+
+  const isRegistered = buildIsDungeonRegisteredCall(fixture.registry, hash)
+  assert.equal(isRegistered.methodName, 'is_dungeon_registered')
+
+  const verifyCreator = buildVerifyCreatorCall(fixture.registry, 1n, 'runner.testnet')
+  assert.equal(verifyCreator.methodName, 'verify_creator')
+  assert.deepEqual(verifyCreator.args, { challenge_id: '1', account_id: 'runner.testnet' })
+
+  const countCall = buildGetChallengeCountCall(fixture.registry)
+  assert.equal(countCall.methodName, 'get_challenge_count')
+
+  const metadataCall = buildUpdateMetadataCall(fixture.registry, 1n, 'New Title')
+  assert.equal(metadataCall.methodName, 'update_metadata')
+  assert.deepEqual(metadataCall.args, { challenge_id: '1', metadata: 'New Title' })
+
+  const registerWithMeta = buildRegisterChallengeCall(fixture.registry, hash, 1000n, 'My Dungeon')
+  assert.equal(registerWithMeta.methodName, 'register_challenge_with_metadata')
+  if (registerWithMeta.methodName === 'register_challenge_with_metadata') {
+    assert.equal(registerWithMeta.args.metadata, 'My Dungeon')
+  }
 })
 

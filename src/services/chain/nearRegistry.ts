@@ -17,18 +17,39 @@ export interface NearRegistryChallenge {
   schema_version: number
   registered_at_nanoseconds: string
   registered_at_block_height: string
+  metadata?: string | null
 }
 
-export interface NearRegistryChangeCall {
-  contractId: string
-  methodName: 'register_challenge'
-  args: { dungeon_hash: string }
-  gas: string
-  deposit: string
-}
+export type NearRegistryChangeCall =
+  | {
+      contractId: string
+      methodName: 'register_challenge'
+      args: { dungeon_hash: string }
+      gas: string
+      deposit: string
+    }
+  | {
+      contractId: string
+      methodName: 'register_challenge_with_metadata'
+      args: { dungeon_hash: string; metadata: string | null }
+      gas: string
+      deposit: string
+    }
+  | {
+      contractId: string
+      methodName: 'update_metadata'
+      args: { challenge_id: string; metadata: string | null }
+      gas: string
+      deposit: string
+    }
 
 export type NearRegistryViewCall =
   | { contractId: string; methodName: 'get_challenge'; args: { challenge_id: string } }
+  | { contractId: string; methodName: 'get_challenge_by_hash'; args: { dungeon_hash: string } }
+  | { contractId: string; methodName: 'is_dungeon_registered'; args: { dungeon_hash: string } }
+  | { contractId: string; methodName: 'verify_creator'; args: { challenge_id: string; account_id: string } }
+  | { contractId: string; methodName: 'get_creator_challenge_count'; args: { creator: string } }
+  | { contractId: string; methodName: 'get_challenge_count'; args: Record<string, never> }
   | {
       contractId: string
       methodName: 'get_challenges_by_creator'
@@ -50,10 +71,21 @@ export function buildRegisterChallengeCall(
   registryAccountId: string,
   dungeonHash: Uint8Array,
   storageDepositYocto: bigint,
+  metadata?: string | null,
 ): NearRegistryChangeCall {
   assertNearAccountId(registryAccountId, 'Registry account ID')
   if (dungeonHash.length !== 32) throw new Error('NEAR registry dungeon hash must be exactly 32 bytes')
   if (storageDepositYocto <= 0n) throw new Error('NEAR registry storage deposit must be positive')
+  if (metadata !== undefined && metadata !== null) {
+    if (metadata.length > 512) throw new Error('Metadata exceeds maximum length of 512 characters')
+    return {
+      contractId: registryAccountId,
+      methodName: 'register_challenge_with_metadata',
+      args: { dungeon_hash: bytesToBase64(dungeonHash), metadata },
+      gas: NEAR_REGISTER_CHALLENGE_GAS.toString(),
+      deposit: storageDepositYocto.toString(),
+    }
+  }
   return {
     contractId: registryAccountId,
     methodName: 'register_challenge',
@@ -63,10 +95,64 @@ export function buildRegisterChallengeCall(
   }
 }
 
+export function buildUpdateMetadataCall(
+  registryAccountId: string,
+  challengeId: bigint,
+  metadata: string | null,
+  depositYocto: bigint = 10_000_000_000_000_000_000_000n, // 0.01 NEAR buffer
+): NearRegistryChangeCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertPositiveU64(challengeId, 'Challenge ID')
+  if (metadata && metadata.length > 512) throw new Error('Metadata exceeds maximum length of 512 characters')
+  return {
+    contractId: registryAccountId,
+    methodName: 'update_metadata',
+    args: { challenge_id: challengeId.toString(), metadata },
+    gas: NEAR_REGISTER_CHALLENGE_GAS.toString(),
+    deposit: depositYocto.toString(),
+  }
+}
+
 export function buildGetChallengeCall(registryAccountId: string, challengeId: bigint): NearRegistryViewCall {
   assertNearAccountId(registryAccountId, 'Registry account ID')
   assertPositiveU64(challengeId, 'Challenge ID')
   return { contractId: registryAccountId, methodName: 'get_challenge', args: { challenge_id: challengeId.toString() } }
+}
+
+export function buildGetChallengeByHashCall(registryAccountId: string, dungeonHash: Uint8Array): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  if (dungeonHash.length !== 32) throw new Error('NEAR registry dungeon hash must be exactly 32 bytes')
+  return {
+    contractId: registryAccountId,
+    methodName: 'get_challenge_by_hash',
+    args: { dungeon_hash: bytesToBase64(dungeonHash) },
+  }
+}
+
+export function buildIsDungeonRegisteredCall(registryAccountId: string, dungeonHash: Uint8Array): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  if (dungeonHash.length !== 32) throw new Error('NEAR registry dungeon hash must be exactly 32 bytes')
+  return {
+    contractId: registryAccountId,
+    methodName: 'is_dungeon_registered',
+    args: { dungeon_hash: bytesToBase64(dungeonHash) },
+  }
+}
+
+export function buildVerifyCreatorCall(registryAccountId: string, challengeId: bigint, accountId: string): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertPositiveU64(challengeId, 'Challenge ID')
+  assertNearAccountId(accountId, 'Account ID')
+  return {
+    contractId: registryAccountId,
+    methodName: 'verify_creator',
+    args: { challenge_id: challengeId.toString(), account_id: accountId },
+  }
+}
+
+export function buildGetChallengeCountCall(registryAccountId: string): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  return { contractId: registryAccountId, methodName: 'get_challenge_count', args: {} }
 }
 
 export function buildGetChallengesByCreatorCall(
@@ -107,6 +193,7 @@ export function decodeNearRegistryChallenge(value: unknown): NearRegistryChallen
     schema_version: CANONICAL_DUNGEON_VERSION,
     registered_at_nanoseconds: registeredAtNanoseconds,
     registered_at_block_height: registeredAtBlockHeight,
+    ...(typeof candidate.metadata === 'string' || candidate.metadata === null ? { metadata: candidate.metadata } : {}),
   }
 }
 

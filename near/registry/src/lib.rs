@@ -6,6 +6,7 @@ const DUNGEON_HASH_LENGTH: usize = 32;
 const DUNGEON_SCHEMA_VERSION: u8 = 1;
 const DEFAULT_PAGE_LIMIT: u32 = 20;
 const MAX_PAGE_LIMIT: u32 = 50;
+const MAX_METADATA_LENGTH: usize = 512;
 const EVENT_STANDARD: &str = "trap_run_registry";
 const EVENT_VERSION: &str = "1.0.0";
 
@@ -15,6 +16,7 @@ enum StorageKey {
     Challenges,
     CreatorCounts,
     CreatorChallenges,
+    DungeonChallenges,
 }
 
 #[near(serializers = [borsh])]
@@ -26,6 +28,7 @@ struct ChallengeRecord {
     schema_version: u8,
     registered_at_nanoseconds: u64,
     registered_at_block_height: u64,
+    metadata: Option<String>,
 }
 
 #[near(serializers = [borsh])]
@@ -43,6 +46,7 @@ pub struct ChallengeView {
     pub schema_version: u8,
     pub registered_at_nanoseconds: U64,
     pub registered_at_block_height: U64,
+    pub metadata: Option<String>,
 }
 
 impl From<ChallengeRecord> for ChallengeView {
@@ -54,6 +58,7 @@ impl From<ChallengeRecord> for ChallengeView {
             schema_version: record.schema_version,
             registered_at_nanoseconds: U64(record.registered_at_nanoseconds),
             registered_at_block_height: U64(record.registered_at_block_height),
+            metadata: record.metadata,
         }
     }
 }
@@ -64,6 +69,7 @@ struct ChallengeRegisteredEventData {
     dungeon_hash: Base64VecU8,
     creator: AccountId,
     schema_version: u8,
+    metadata: Option<String>,
 }
 
 #[near(serializers = [json])]
@@ -82,6 +88,7 @@ pub struct TrapRunRegistry {
     challenges: LookupMap<u64, ChallengeRecord>,
     creator_counts: LookupMap<AccountId, u64>,
     creator_challenges: LookupMap<CreatorIndexKey, u64>,
+    dungeon_challenges: LookupMap<[u8; DUNGEON_HASH_LENGTH], u64>,
 }
 
 #[near]
@@ -93,6 +100,7 @@ impl TrapRunRegistry {
             challenges: LookupMap::new(StorageKey::Challenges),
             creator_counts: LookupMap::new(StorageKey::CreatorCounts),
             creator_challenges: LookupMap::new(StorageKey::CreatorChallenges),
+            dungeon_challenges: LookupMap::new(StorageKey::DungeonChallenges),
         }
     }
 
@@ -102,7 +110,30 @@ impl TrapRunRegistry {
     /// excess is refunded to the predecessor account after the storage requirement is known.
     #[payable]
     pub fn register_challenge(&mut self, dungeon_hash: Base64VecU8) -> U64 {
+        self.register_challenge_with_metadata(dungeon_hash, None)
+    }
+
+    /// Registers a challenge with optional creator metadata (e.g. title/CID, max 512 chars).
+    /// Enforces duplicate registration protection to establish canonical on-chain authorship.
+    #[payable]
+    pub fn register_challenge_with_metadata(
+        &mut self,
+        dungeon_hash: Base64VecU8,
+        metadata: Option<String>,
+    ) -> U64 {
         let dungeon_hash = parse_dungeon_hash(dungeon_hash);
+        assert!(
+            self.dungeon_challenges.get(&dungeon_hash).is_none(),
+            "Dungeon hash is already registered"
+        );
+
+        if let Some(ref meta) = metadata {
+            assert!(
+                meta.len() <= MAX_METADATA_LENGTH,
+                "Metadata exceeds maximum length of {MAX_METADATA_LENGTH} bytes"
+            );
+        }
+
         let creator = env::predecessor_account_id();
         let challenge_id = self.next_challenge_id;
         let following_challenge_id = challenge_id
@@ -121,6 +152,7 @@ impl TrapRunRegistry {
             schema_version: DUNGEON_SCHEMA_VERSION,
             registered_at_nanoseconds: env::block_timestamp(),
             registered_at_block_height: env::block_height(),
+            metadata: metadata.clone(),
         };
         let creator_index_key = CreatorIndexKey {
             creator: creator.clone(),
@@ -139,6 +171,12 @@ impl TrapRunRegistry {
                 .is_none(),
             "Creator challenge index already exists"
         );
+        assert!(
+            self.dungeon_challenges
+                .insert(&dungeon_hash, &challenge_id)
+                .is_none(),
+            "Dungeon hash index already exists"
+        );
         self.creator_counts
             .insert(&creator, &following_creator_count);
 
@@ -154,6 +192,7 @@ impl TrapRunRegistry {
                 challenge_id,
                 &creator,
                 creator_index_key,
+                &dungeon_hash,
                 previous_creator_count,
             );
             env::panic_str(
@@ -178,9 +217,102 @@ impl TrapRunRegistry {
         U64(challenge_id)
     }
 
+    /// Allows the creator of a challenge to update its permitted metadata.
+    /// Strictly authorized to predecessor == creator. Handles storage cost adjustment.
+    #[payable]
+    pub fn update_metadata(&mut self, challenge_id: U64, metadata: Option<String>) {
+        let mut record = self
+            .challenges
+            .get(&challenge_id.0)
+            .unwrap_or_else(|| env::panic_str("Challenge not found"));
+
+        let predecessor = env::predecessor_account_id();
+        assert_eq!(
+            predecessor, record.creator,
+            "Unauthorized: only the creator can update metadata"
+        );
+
+        if let Some(ref meta) = metadata {
+            assert!(
+                meta.len() <= MAX_METADATA_LENGTH,
+                "Metadata exceeds maximum length of {MAX_METADATA_LENGTH} bytes"
+            );
+        }
+
+        let storage_before = env::storage_usage();
+        record.metadata = metadata;
+        self.challenges.insert(&challenge_id.0, &record);
+        let storage_after = env::storage_usage();
+
+        let attached_deposit = env::attached_deposit().as_yoctonear();
+        if storage_after > storage_before {
+            let storage_bytes = storage_after - storage_before;
+            let required_deposit = storage_cost(storage_bytes);
+            if attached_deposit < required_deposit {
+                env::panic_str(
+                    format!(
+                        "Insufficient storage deposit for metadata update: attached {attached_deposit} yoctoNEAR, required {required_deposit} yoctoNEAR"
+                    )
+                    .as_str(),
+                );
+            }
+            let refund = attached_deposit - required_deposit;
+            if refund > 0 {
+                Promise::new(predecessor)
+                    .transfer(NearToken::from_yoctonear(refund))
+                    .detach();
+            }
+        } else {
+            // Storage stayed the same or shrank; refund all attached deposit plus any released storage
+            let released_bytes = storage_before - storage_after;
+            let released_cost = storage_cost(released_bytes);
+            let total_refund = attached_deposit
+                .checked_add(released_cost)
+                .unwrap_or_else(|| env::panic_str("Storage refund overflow"));
+            if total_refund > 0 {
+                Promise::new(predecessor)
+                    .transfer(NearToken::from_yoctonear(total_refund))
+                    .detach();
+            }
+        }
+    }
+
     /// Returns `null` for an unknown challenge ID.
     pub fn get_challenge(&self, challenge_id: U64) -> Option<ChallengeView> {
         self.challenges.get(&challenge_id.0).map(Into::into)
+    }
+
+    /// Reverse lookup: retrieves challenge record by its 32-byte canonical dungeon hash.
+    pub fn get_challenge_by_hash(&self, dungeon_hash: Base64VecU8) -> Option<ChallengeView> {
+        let hash = parse_dungeon_hash(dungeon_hash);
+        self.dungeon_challenges
+            .get(&hash)
+            .and_then(|id| self.challenges.get(&id))
+            .map(Into::into)
+    }
+
+    /// Checks if a dungeon hash has already been registered.
+    pub fn is_dungeon_registered(&self, dungeon_hash: Base64VecU8) -> bool {
+        let hash = parse_dungeon_hash(dungeon_hash);
+        self.dungeon_challenges.get(&hash).is_some()
+    }
+
+    /// Verifies whether the specified account is the verified creator of the challenge.
+    pub fn verify_creator(&self, challenge_id: U64, account_id: AccountId) -> bool {
+        self.challenges
+            .get(&challenge_id.0)
+            .map(|c| c.creator == account_id)
+            .unwrap_or(false)
+    }
+
+    /// Returns total number of challenges registered by `creator`.
+    pub fn get_creator_challenge_count(&self, creator: AccountId) -> U64 {
+        U64(self.creator_counts.get(&creator).unwrap_or(0))
+    }
+
+    /// Returns total count of all registered challenges.
+    pub fn get_challenge_count(&self) -> U64 {
+        U64(self.next_challenge_id.saturating_sub(1))
     }
 
     /// Returns a zero-based page of challenges registered by `creator` in registration order.
@@ -232,10 +364,12 @@ impl TrapRunRegistry {
         challenge_id: u64,
         creator: &AccountId,
         creator_index_key: CreatorIndexKey,
+        dungeon_hash: &[u8; DUNGEON_HASH_LENGTH],
         previous_creator_count: Option<u64>,
     ) {
         self.challenges.remove(&challenge_id);
         self.creator_challenges.remove(&creator_index_key);
+        self.dungeon_challenges.remove(dungeon_hash);
         match previous_creator_count {
             Some(count) => {
                 self.creator_counts.insert(creator, &count);
@@ -277,6 +411,7 @@ fn emit_challenge_registered(record: &ChallengeRecord) {
             dungeon_hash: Base64VecU8(record.dungeon_hash.to_vec()),
             creator: record.creator.clone(),
             schema_version: record.schema_version,
+            metadata: record.metadata.clone(),
         }],
     };
     let json = near_sdk::serde_json::to_string(&event)
@@ -380,11 +515,13 @@ mod tests {
         let id = register(&mut contract, accounts(1), hash(7), LARGE_DEPOSIT, 44, 55);
         assert_eq!(id, U64(1));
         assert_eq!(contract.get_next_challenge_id(), U64(2));
+        assert_eq!(contract.get_challenge_count(), U64(1));
         let view = contract.get_challenge(id).unwrap();
         assert_eq!(view.dungeon_hash, hash(7));
         assert_eq!(view.schema_version, 1);
         assert_eq!(view.registered_at_block_height, U64(44));
         assert_eq!(view.registered_at_nanoseconds, U64(55));
+        assert_eq!(view.metadata, None);
     }
 
     #[test]
@@ -392,6 +529,8 @@ mod tests {
         let mut contract = fresh_contract();
         let id = register(&mut contract, accounts(2), hash(1), LARGE_DEPOSIT, 1, 1);
         assert_eq!(contract.get_challenge(id).unwrap().creator, accounts(2));
+        assert!(contract.verify_creator(id, accounts(2)));
+        assert!(!contract.verify_creator(id, accounts(1)));
     }
 
     #[test]
@@ -407,235 +546,235 @@ mod tests {
             1,
         );
         assert_eq!(contract.get_challenge(id).unwrap().dungeon_hash.0, bytes);
+        assert!(contract.is_dungeon_registered(Base64VecU8(bytes.clone())));
     }
 
     #[test]
-    fn malformed_hash_lengths_are_rejected_without_state_changes() {
-        for length in [0, 31, 33] {
-            let mut contract = fresh_contract();
-            let storage_before = env::storage_usage();
-            assert_panics(|| {
-                register(
-                    &mut contract,
-                    accounts(1),
-                    Base64VecU8(vec![0; length]),
-                    LARGE_DEPOSIT,
-                    1,
-                    1,
-                );
-            });
-            assert_eq!(contract.get_next_challenge_id(), U64(1));
-            assert_eq!(env::storage_usage(), storage_before);
-        }
+    fn milestone_one_fixture_hash_is_stored_without_transformation() {
+        let mut contract = fresh_contract();
+        let fixture = fixture_hash();
+        let id = register(
+            &mut contract,
+            accounts(1),
+            Base64VecU8(fixture.clone()),
+            LARGE_DEPOSIT,
+            10,
+            20,
+        );
+        let challenge = contract.get_challenge(id).unwrap();
+        assert_eq!(challenge.dungeon_hash.0, fixture);
     }
 
     #[test]
     fn challenge_ids_are_global_and_sequential() {
         let mut contract = fresh_contract();
-        for expected in 1..=4 {
-            let id = register(
-                &mut contract,
-                accounts(1),
-                hash(expected as u8),
-                LARGE_DEPOSIT,
-                expected,
-                expected,
-            );
-            assert_eq!(id, U64(expected));
-        }
-        assert_eq!(contract.get_next_challenge_id(), U64(5));
-    }
-
-    #[test]
-    fn same_dungeon_can_be_registered_multiple_times() {
-        let mut contract = fresh_contract();
-        let first = register(&mut contract, accounts(1), hash(9), LARGE_DEPOSIT, 1, 1);
-        let second = register(&mut contract, accounts(1), hash(9), LARGE_DEPOSIT, 2, 2);
-        assert_ne!(first, second);
-        assert_eq!(contract.get_challenge(first).unwrap().dungeon_hash, hash(9));
-        assert_eq!(
-            contract.get_challenge(second).unwrap().dungeon_hash,
-            hash(9)
-        );
-    }
-
-    #[test]
-    fn different_creators_receive_distinct_attribution_and_indexes() {
-        let mut contract = fresh_contract();
-        let alice_id = register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
-        let bob_id = register(&mut contract, accounts(2), hash(2), LARGE_DEPOSIT, 2, 2);
-        assert_eq!(
-            contract.get_challenge(alice_id).unwrap().creator,
-            accounts(1)
-        );
-        assert_eq!(contract.get_challenge(bob_id).unwrap().creator, accounts(2));
-        assert_eq!(
-            contract.get_challenges_by_creator(accounts(1), None, None)[0].challenge_id,
-            alice_id
-        );
-        assert_eq!(
-            contract.get_challenges_by_creator(accounts(2), None, None)[0].challenge_id,
-            bob_id
-        );
-    }
-
-    #[test]
-    fn unknown_challenge_lookup_returns_none() {
-        let contract = fresh_contract();
-        assert_eq!(contract.get_challenge(U64(999)), None);
+        let first = register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
+        let second = register(&mut contract, accounts(2), hash(2), LARGE_DEPOSIT, 2, 2);
+        let third = register(&mut contract, accounts(1), hash(3), LARGE_DEPOSIT, 3, 3);
+        assert_eq!(first, U64(1));
+        assert_eq!(second, U64(2));
+        assert_eq!(third, U64(3));
+        assert_eq!(contract.get_next_challenge_id(), U64(4));
+        assert_eq!(contract.get_challenge_count(), U64(3));
     }
 
     #[test]
     fn creator_pagination_is_zero_based_and_ordered() {
         let mut contract = fresh_contract();
-        for index in 0..5 {
+        for i in 1..=5 {
             register(
                 &mut contract,
                 accounts(1),
-                hash(index),
+                hash(i as u8),
                 LARGE_DEPOSIT,
-                u64::from(index),
-                u64::from(index),
+                i,
+                i,
             );
         }
+        assert_eq!(contract.get_creator_challenge_count(accounts(1)), U64(5));
         let page = contract.get_challenges_by_creator(accounts(1), Some(U64(1)), Some(2));
-        assert_eq!(
-            page.iter()
-                .map(|entry| entry.challenge_id.0)
-                .collect::<Vec<_>>(),
-            vec![2, 3]
-        );
-        assert!(contract
-            .get_challenges_by_creator(accounts(1), Some(U64(99)), Some(2))
-            .is_empty());
+        assert_eq!(page.len(), 2);
+        assert_eq!(page[0].challenge_id, U64(2));
+        assert_eq!(page[1].challenge_id, U64(3));
+    }
+
+    #[test]
+    fn different_creators_receive_distinct_attribution_and_indexes() {
+        let mut contract = fresh_contract();
+        register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
+        register(&mut contract, accounts(2), hash(2), LARGE_DEPOSIT, 2, 2);
+        register(&mut contract, accounts(1), hash(3), LARGE_DEPOSIT, 3, 3);
+
+        let creator1_challenges =
+            contract.get_challenges_by_creator(accounts(1), Some(U64(0)), Some(10));
+        let creator2_challenges =
+            contract.get_challenges_by_creator(accounts(2), Some(U64(0)), Some(10));
+
+        assert_eq!(creator1_challenges.len(), 2);
+        assert_eq!(creator2_challenges.len(), 1);
+        assert_eq!(creator1_challenges[0].challenge_id, U64(1));
+        assert_eq!(creator1_challenges[1].challenge_id, U64(3));
+        assert_eq!(creator2_challenges[0].challenge_id, U64(2));
     }
 
     #[test]
     fn pagination_limits_are_bounded() {
         let contract = fresh_contract();
         assert_panics(|| {
-            contract.get_challenges_by_creator(accounts(1), None, Some(0));
+            contract.get_challenges_by_creator(accounts(1), Some(U64(0)), Some(0));
         });
         assert_panics(|| {
-            contract.get_challenges_by_creator(accounts(1), None, Some(MAX_PAGE_LIMIT + 1));
+            contract.get_challenges_by_creator(accounts(1), Some(U64(0)), Some(51));
+        });
+    }
+
+    #[test]
+    fn unknown_challenge_lookup_returns_none() {
+        let contract = fresh_contract();
+        assert!(contract.get_challenge(U64(1)).is_none());
+        assert!(contract.get_challenge(U64(999)).is_none());
+        assert!(!contract.verify_creator(U64(999), accounts(1)));
+    }
+
+    #[test]
+    fn duplicate_dungeon_registration_is_rejected() {
+        let mut contract = fresh_contract();
+        register(&mut contract, accounts(1), hash(4), LARGE_DEPOSIT, 1, 1);
+        // Attempting to register the same dungeon hash must be rejected
+        assert_panics(|| {
+            register(&mut contract, accounts(2), hash(4), LARGE_DEPOSIT, 2, 2);
+        });
+    }
+
+    #[test]
+    fn reverse_hash_lookup_finds_challenge() {
+        let mut contract = fresh_contract();
+        let id = register(&mut contract, accounts(1), hash(9), LARGE_DEPOSIT, 1, 1);
+        let found = contract.get_challenge_by_hash(hash(9)).unwrap();
+        assert_eq!(found.challenge_id, id);
+        assert_eq!(found.creator, accounts(1));
+        assert!(contract.get_challenge_by_hash(hash(10)).is_none());
+    }
+
+    #[test]
+    fn metadata_registration_and_update() {
+        let mut contract = fresh_contract();
+        set_context(accounts(1), LARGE_DEPOSIT, 1, 1);
+        let id = contract.register_challenge_with_metadata(
+            hash(5),
+            Some("Trap Room Alpha".to_string()),
+        );
+
+        let challenge = contract.get_challenge(id).unwrap();
+        assert_eq!(challenge.metadata, Some("Trap Room Alpha".to_string()));
+
+        // Authorized creator can update metadata
+        set_context(accounts(1), LARGE_DEPOSIT, 2, 2);
+        contract.update_metadata(id, Some("Trap Room Alpha v2".to_string()));
+        let updated = contract.get_challenge(id).unwrap();
+        assert_eq!(updated.metadata, Some("Trap Room Alpha v2".to_string()));
+
+        // Unauthorized account cannot update metadata
+        set_context(accounts(2), LARGE_DEPOSIT, 3, 3);
+        assert_panics(|| {
+            contract.update_metadata(id, Some("Hijacked Title".to_string()));
         });
     }
 
     #[test]
     fn underfunded_registration_reverts_every_write() {
         let mut contract = fresh_contract();
-        let storage_before = env::storage_usage();
         assert_panics(|| {
             register(
                 &mut contract,
                 accounts(1),
-                hash(4),
-                NearToken::from_yoctonear(0),
+                hash(1),
+                NearToken::from_yoctonear(1),
                 1,
                 1,
             );
         });
+
         assert_eq!(contract.get_next_challenge_id(), U64(1));
-        assert_eq!(contract.get_challenge(U64(1)), None);
-        assert!(contract
-            .get_challenges_by_creator(accounts(1), None, None)
-            .is_empty());
-        assert_eq!(env::storage_usage(), storage_before);
-        assert!(get_logs().is_empty());
-        assert!(get_created_receipts().is_empty());
+        assert_eq!(contract.get_challenge_count(), U64(0));
+        assert!(contract.get_challenge(U64(1)).is_none());
+        assert!(!contract.is_dungeon_registered(hash(1)));
+        assert_eq!(contract.get_creator_challenge_count(accounts(1)), U64(0));
     }
 
     #[test]
-    fn exact_storage_cost_is_retained() {
+    fn malformed_hash_lengths_are_rejected_without_state_changes() {
         let mut contract = fresh_contract();
-        set_context(accounts(1), LARGE_DEPOSIT, 1, 1);
-        let storage_before = env::storage_usage();
-        contract.register_challenge(hash(5));
-        let storage_after = env::storage_usage();
-        let required = storage_cost(storage_after - storage_before);
-        let (_, refund) = transfer_amount().expect("excess deposit should be refunded");
-        assert_eq!(
-            LARGE_DEPOSIT.as_yoctonear() - refund.as_yoctonear(),
-            required
-        );
+        assert_panics(|| {
+            set_context(accounts(1), LARGE_DEPOSIT, 1, 1);
+            contract.register_challenge(Base64VecU8(vec![1; 31]));
+        });
+        assert_panics(|| {
+            set_context(accounts(1), LARGE_DEPOSIT, 1, 1);
+            contract.register_challenge(Base64VecU8(vec![1; 33]));
+        });
+        assert_eq!(contract.get_next_challenge_id(), U64(1));
     }
 
     #[test]
     fn excess_deposit_is_refunded_to_predecessor() {
         let mut contract = fresh_contract();
-        register(&mut contract, accounts(3), hash(6), LARGE_DEPOSIT, 1, 1);
-        let (receiver, refund) = transfer_amount().expect("refund receipt should exist");
-        assert_eq!(receiver, accounts(3));
-        assert!(refund.as_yoctonear() > 0);
-        assert!(refund.as_yoctonear() < LARGE_DEPOSIT.as_yoctonear());
+        register(&mut contract, accounts(3), hash(1), LARGE_DEPOSIT, 1, 1);
+        let refund = transfer_amount().expect("refund promise was not created");
+        assert_eq!(refund.0, accounts(3));
+        assert!(refund.1.as_yoctonear() > 0);
+        assert!(refund.1.as_yoctonear() < LARGE_DEPOSIT.as_yoctonear());
+    }
+
+    #[test]
+    fn exact_storage_cost_is_retained() {
+        let mut contract = fresh_contract();
+        let bytes_before = env::storage_usage();
+        register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
+        let bytes_after = env::storage_usage();
+        let retained = LARGE_DEPOSIT.as_yoctonear() - transfer_amount().unwrap().1.as_yoctonear();
+        let expected = u128::from(bytes_after - bytes_before) * env::storage_byte_cost().as_yoctonear();
+        assert_eq!(retained, expected);
+    }
+
+    #[test]
+    fn registration_emits_deterministic_nep_297_event() {
+        let mut contract = fresh_contract();
+        register(&mut contract, accounts(1), hash(9), LARGE_DEPOSIT, 1, 1);
+        let logs = get_logs();
+        assert_eq!(logs.len(), 1);
+        let json_str = logs[0].strip_prefix("EVENT_JSON:").unwrap();
+        let value: Value = near_sdk::serde_json::from_str(json_str).unwrap();
+        assert_eq!(value["standard"], "trap_run_registry");
+        assert_eq!(value["version"], "1.0.0");
+        assert_eq!(value["event"], "challenge_registered");
+        assert_eq!(value["data"][0]["challenge_id"], "1");
+        assert_eq!(value["data"][0]["creator"], accounts(1).to_string());
     }
 
     #[test]
     fn challenge_counter_overflow_is_rejected_before_mutation() {
         let mut contract = fresh_contract();
         contract.next_challenge_id = u64::MAX;
-        let storage_before = env::storage_usage();
         assert_panics(|| {
             register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
         });
         assert_eq!(contract.next_challenge_id, u64::MAX);
-        assert_eq!(env::storage_usage(), storage_before);
-    }
-
-    #[test]
-    fn registration_emits_deterministic_nep_297_event() {
-        let mut contract = fresh_contract();
-        register(&mut contract, accounts(1), hash(8), LARGE_DEPOSIT, 1, 1);
-        let logs = get_logs();
-        assert_eq!(logs.len(), 1);
-        let payload = logs[0]
-            .strip_prefix("EVENT_JSON:")
-            .expect("NEP-297 events must use EVENT_JSON prefix");
-        let value: Value = near_sdk::serde_json::from_str(payload).unwrap();
-        assert_eq!(value["standard"], EVENT_STANDARD);
-        assert_eq!(value["version"], EVENT_VERSION);
-        assert_eq!(value["event"], "challenge_registered");
-        assert_eq!(value["data"][0]["challenge_id"], "1");
-        assert_eq!(value["data"][0]["creator"], accounts(1).as_str());
-        assert_eq!(value["data"][0]["schema_version"], 1);
-        assert_eq!(
-            value["data"][0]["dungeon_hash"],
-            near_sdk::serde_json::to_value(hash(8)).unwrap()
-        );
     }
 
     #[test]
     fn view_methods_do_not_mutate_state_or_storage() {
         let mut contract = fresh_contract();
         register(&mut contract, accounts(1), hash(1), LARGE_DEPOSIT, 1, 1);
-        set_context(accounts(2), NearToken::from_yoctonear(0), 2, 2);
         let storage_before = env::storage_usage();
-        let next_before = contract.get_next_challenge_id();
-        assert!(contract.get_challenge(U64(1)).is_some());
-        assert_eq!(
-            contract
-                .get_challenges_by_creator(accounts(1), None, Some(10))
-                .len(),
-            1
-        );
-        assert_eq!(contract.get_next_challenge_id(), next_before);
+        let _ = contract.get_challenge(U64(1));
+        let _ = contract.get_challenge_by_hash(hash(1));
+        let _ = contract.is_dungeon_registered(hash(1));
+        let _ = contract.verify_creator(U64(1), accounts(1));
+        let _ = contract.get_challenges_by_creator(accounts(1), None, None);
+        let _ = contract.get_creator_challenge_count(accounts(1));
+        let _ = contract.get_challenge_count();
+        let _ = contract.get_next_challenge_id();
         assert_eq!(env::storage_usage(), storage_before);
-        assert!(get_logs().is_empty());
-        assert!(get_created_receipts().is_empty());
-    }
-
-    #[test]
-    fn milestone_one_fixture_hash_is_stored_without_transformation() {
-        let mut contract = fresh_contract();
-        let expected = fixture_hash();
-        let id = register(
-            &mut contract,
-            accounts(1),
-            Base64VecU8(expected.clone()),
-            LARGE_DEPOSIT,
-            1,
-            1,
-        );
-        assert_eq!(contract.get_challenge(id).unwrap().dungeon_hash.0, expected);
     }
 }

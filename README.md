@@ -105,7 +105,7 @@ Copy `.env.example` to `.env`:
 # NEAR Testnet
 VITE_NEAR_NETWORK=testnet
 VITE_NEAR_REGISTRY_CONTRACT=traprun-registry.testnet
-VITE_NEAR_RPC_URL=https://rpc.testnet.near.org
+VITE_NEAR_RPC_URL=https://rpc.testnet.fastnear.com
 
 # Supabase Backend
 VITE_SUPABASE_URL=https://your-project.supabase.co

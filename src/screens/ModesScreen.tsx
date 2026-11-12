@@ -6,8 +6,8 @@ import { sfx } from '@/lib/audio'
 const MODES: Array<{ route: Route; title: string; blurb: string; icon: LucideIcon; tint: string }> = [
   { route: { name: 'practice' }, title: 'Practice', blurb: '12 handmade dungeons that get meaner as you go.', icon: Target, tint: 'text-acid-500 border-acid-500/40 hover:shadow-acid' },
   { route: { name: 'daily' }, title: 'Daily Challenge', blurb: 'One dungeon for everyone. Keep your streak alive.', icon: Flame, tint: 'text-ember-500 border-ember-500/40 hover:shadow-ember' },
-  { route: { name: 'friend' }, title: 'Challenge a Friend', blurb: 'Share a code or link. They run your dungeon.', icon: Swords, tint: 'text-volt-400 border-volt-500/40 hover:shadow-volt' },
-  { route: { name: 'editor' }, title: 'Creator Mode', blurb: 'Build a dungeon in 30 seconds, test it, publish it.', icon: Hammer, tint: 'text-zinc-100 border-ink-400 hover:border-zinc-300' },
+  { route: { name: 'friend' }, title: 'Community & Challenges', blurb: 'Explore community dungeons, share creations, or play friend links.', icon: Swords, tint: 'text-volt-400 border-volt-500/40 hover:shadow-volt' },
+  { route: { name: 'editor' }, title: 'Dungeon Creator', blurb: 'Build with pieces, test your escape, and publish on-chain or off-chain.', icon: Hammer, tint: 'text-zinc-100 border-ink-400 hover:border-zinc-300' },
 ]
 
 export function ModesScreen() {

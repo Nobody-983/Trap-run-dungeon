@@ -45,8 +45,12 @@ export interface WalletProvider {
 export interface SignedMessage {
   chain: ChainId
   accountId: string
+  publicKey?: string
   message: string
   signature: string
+  nonce?: string
+  recipient?: string
+  callbackUrl?: string
 }
 
 // ---- chain-independent player + ownership interfaces ----------------------------------

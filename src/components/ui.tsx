@@ -1,6 +1,9 @@
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { ArrowLeft, Heart } from 'lucide-react'
 import { GRID, idx, type CellType, type Dungeon } from '@/game/types'
+import { DungeonCrest, TrapRunLogo } from './TrapRunLogo'
+
+export { DungeonCrest, TrapRunLogo }
 
 type Variant = 'primary' | 'volt' | 'ghost' | 'danger' | 'ember'
 
@@ -36,13 +39,7 @@ export function Label({ children, className = '' }: { children: ReactNode; class
 }
 
 export function Logo({ size = 'md' }: { size?: 'md' | 'xl' }) {
-  return (
-    <div className={`font-pixel font-bold leading-none tracking-tight ${size === 'xl' ? 'text-5xl sm:text-7xl' : 'text-lg'}`}>
-      <span className="text-zinc-50">TRAP</span>
-      <span className="text-volt-400 drop-shadow-[0_0_12px_rgba(157,77,255,.9)]">//</span>
-      <span className="text-acid-500 drop-shadow-[0_0_12px_rgba(185,255,59,.7)]">RUN</span>
-    </div>
-  )
+  return <TrapRunLogo size={size} />
 }
 
 export function Screen({
@@ -67,7 +64,10 @@ export function Screen({
               <ArrowLeft size={20} />
             </button>
           )}
-          <h1 className="font-display text-lg font-bold tracking-tight text-zinc-50">{title}</h1>
+          <div className="flex items-center gap-2.5">
+            <DungeonCrest size={22} />
+            <h1 className="font-display text-lg font-bold tracking-tight text-zinc-50">{title}</h1>
+          </div>
           <div className="ml-auto flex items-center gap-2">{right}</div>
         </div>
       </header>

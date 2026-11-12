@@ -2,14 +2,23 @@ import { previousDateKey } from '@/game/daily'
 import type { RunResult } from '@/game/result'
 import type { Dungeon } from '@/game/types'
 import { PRACTICE_LEVELS } from '@/game/levels'
+import { calculateCoinReward } from '@/economy/catalog'
 import { ACHIEVEMENTS } from './achievements'
 import { COSMETICS, type UnlockRule } from './cosmetics'
 import { DAILY_CLEAR_BONUS, rollDay } from './health'
-import { levelFromXp, type BestRun, type Profile } from './profile'
+import {
+  levelFromXp,
+  type BestRun,
+  type Profile,
+  type EconomyTransaction,
+  reconcileEconomyBalance,
+} from './profile'
 
 export interface ProgressReport {
   xpGained: number
   breakdown: Array<{ label: string; xp: number }>
+  coinsGained: number
+  coinBreakdown: Array<{ label: string; coins: number }>
   levelBefore: number
   levelAfter: number
   newCosmetics: string[]
@@ -24,6 +33,8 @@ export interface ProgressReport {
 export const emptyReport = (p: Profile): ProgressReport => ({
   xpGained: 0,
   breakdown: [],
+  coinsGained: 0,
+  coinBreakdown: [],
   levelBefore: levelFromXp(p.xp),
   levelAfter: levelFromXp(p.xp),
   newCosmetics: [],
@@ -53,6 +64,8 @@ function ruleMet(rule: UnlockRule, p: Profile): boolean {
       return p.published.length >= rule.n
     case 'shop':
       return p.ownedSkins.includes(rule.skinId)
+    case 'coin':
+      return false
   }
 }
 
@@ -153,6 +166,27 @@ export function applyRun(profile: Profile, r: RunResult): { profile: Profile; re
   report.xpGained = xpGained
   report.breakdown = breakdown
   report.levelAfter = levelFromXp(p.xp)
+
+  // Calculate and award in-game coins (with anti-farming protection & idempotent transaction tracking)
+  const clearsBefore = profile.clears[r.dungeonId] ?? 0
+  const coinReward = calculateCoinReward(r, clearsBefore, p.streak.current)
+  if (coinReward.coins > 0) {
+    const attemptId = r.attemptId || `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+    const creditTx: EconomyTransaction = {
+      id: `reward:${r.dungeonId}:${attemptId}`,
+      kind: 'credit',
+      amount: coinReward.coins,
+      category: 'run_reward',
+      referenceId: r.dungeonId,
+      createdAt: Date.now(),
+    }
+    const nextLedger = [...(p.economyLedger || []), creditTx]
+    const reconciledCoins = reconcileEconomyBalance(nextLedger)
+    p = { ...p, coins: reconciledCoins, economyLedger: nextLedger }
+  }
+  report.coinsGained = coinReward.coins
+  report.coinBreakdown = coinReward.breakdown
+
   p = grantEarned(p, report)
   return { profile: p, report }
 }

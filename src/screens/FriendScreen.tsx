@@ -1,26 +1,53 @@
-import { useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, Copy, ExternalLink, Hammer, Link2, Loader2, LogOut, Play, Search, Wallet } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  BadgeCheck,
+  Compass,
+  Copy,
+  Hammer,
+  Link2,
+  Loader2,
+  LogOut,
+  Play,
+  Search,
+  Share2,
+  Swords,
+  Wallet,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { inbox } from '@/app/inbox'
 import { useNav } from '@/app/nav'
-import { Difficulty, Label, MiniDungeon, Notice, Panel, Screen, Button } from '@/components/ui'
+import { Button, Difficulty, Label, Notice, Panel, Screen } from '@/components/ui'
 import { encodeCanonicalShareCode, type DecodedCanonicalShare, decodeCanonicalShareCode } from '@/game/canonicalIdentity'
-import { decodeDungeon } from '@/game/codec'
+import { decodeDungeon, extractCode } from '@/game/codec'
 import { validateDungeon } from '@/game/validate'
 import type { Dungeon } from '@/game/types'
 import { buildShareLink } from '@/lib/share'
 import { profileStore, useProfile } from '@/progress/store'
 import { services } from '@/services'
-import { NEAR_CONFIG, NEAR_NETWORK_LABEL, nearTxUrl } from '@/services/chain/near'
+import { NEAR_CONFIG, NEAR_NETWORK_LABEL } from '@/services/chain/near'
 import type { NearTransactionPhase } from '@/services/chain/nearWallet'
-import { getChallengeByCode, publishDungeon, createChallenge } from '@/services/supabase'
+import {
+  verifyNearPublishingTransaction,
+  syncVerifiedPublishingToSupabase,
+  getPendingSyncs,
+  type PendingPublishSync,
+} from '@/services/chain/nearTransactionVerifier'
+import {
+  addOrUpdateCommunityDungeon,
+  fetchSharedCommunityCatalog,
+  getCommunityCatalog,
+  recordCommunityDungeonRun,
+  searchAndFilterCommunityDungeons,
+  type CommunityDungeon,
+} from '@/services/community/catalog'
+import { isSupabaseConfigured } from '@/services/supabase/client'
 
-type Tab = 'host' | 'join'
+type Tab = 'community' | 'host' | 'join'
 type NearPhase = 'idle' | 'connecting' | 'wallet-approval' | 'pending-finality'
 
 interface Joined {
   dungeon: Dungeon
-  verified: { chain: 'near' | 'supabase'; id: string; creator: string } | null
+  verified: { chain: 'near'; id: string; creator: string } | null
 }
 
 async function copy(text: string, label: string) {
@@ -39,7 +66,7 @@ function extractCanonicalCode(input: string): string | null {
 export function FriendScreen() {
   const { go } = useNav()
   const p = useProfile()
-  const [tab, setTab] = useState<Tab>(() => (inbox.code || p.published.length === 0 ? 'join' : 'host'))
+  const [tab, setTab] = useState<Tab>(() => (inbox.code ? 'join' : 'community'))
   const [input, setInput] = useState(() => {
     const code = inbox.code
     inbox.code = null
@@ -49,26 +76,64 @@ export function FriendScreen() {
   const [joined, setJoined] = useState<Joined | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
-  const [nearLink, setNearLink] = useState<string | null>(null)
   const [nearAccount, setNearAccount] = useState<string | null>(null)
   const [nearPhase, setNearPhase] = useState<NearPhase>('idle')
   const [nearError, setNearError] = useState<string | null>(null)
 
-  const hosted = p.published[selected] ?? null
-  const nearChallenges = useMemo(() => p.nearChallenges.filter((entry) => hosted && entry.dungeonId === hosted.id), [p.nearChallenges, hosted])
-  const latestNear = nearChallenges[0] ?? null
+  // Community Catalog state
+  const [communitySearch, setCommunitySearch] = useState('')
+  const [diffFilter, setDiffFilter] = useState<number | 'all'>('all')
+  const [catalog, setCatalog] = useState<CommunityDungeon[]>(() => getCommunityCatalog())
+  const [isRemoteCatalog, setIsRemoteCatalog] = useState<boolean>(() => isSupabaseConfigured)
+  const [pendingSyncs, setPendingSyncs] = useState<PendingPublishSync[]>(() => getPendingSyncs())
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  const refreshCatalog = useCallback(async () => {
+    const res = await fetchSharedCommunityCatalog({ query: communitySearch, difficulty: diffFilter })
+    setCatalog(res.dungeons)
+    setIsRemoteCatalog(res.isRemote)
+    setPendingSyncs(getPendingSyncs())
+  }, [communitySearch, diffFilter])
 
   useEffect(() => {
-    let live = true
-    if (latestNear?.shareCode) {
-      void buildShareLink(`/?c=${latestNear.shareCode}`).then((link) => {
-        if (live) setNearLink(link)
+    let active = true
+    const timer = setTimeout(() => {
+      void fetchSharedCommunityCatalog({ query: communitySearch, difficulty: diffFilter }).then((res) => {
+        if (!active) return
+        setCatalog(res.dungeons)
+        setIsRemoteCatalog(res.isRemote)
+        setPendingSyncs(getPendingSyncs())
       })
-    }
+    }, 0)
     return () => {
-      live = false
+      active = false
+      clearTimeout(timer)
     }
-  }, [latestNear?.shareCode])
+  }, [communitySearch, diffFilter])
+
+  const syncAllPending = async () => {
+    setIsSyncing(true)
+    let syncedCount = 0
+    for (const item of pendingSyncs) {
+      const res = await syncVerifiedPublishingToSupabase(item)
+      if (res.synced) syncedCount++
+    }
+    setPendingSyncs(getPendingSyncs())
+    void refreshCatalog()
+    setIsSyncing(false)
+    if (syncedCount > 0) {
+      toast.success(`Synced ${syncedCount} challenge(s) to shared database!`)
+    } else {
+      toast.info('Could not sync pending challenges. Check Supabase connection in .env.')
+    }
+  }
+
+  const hosted = p.published[selected] ?? null
+  const nearChallenges = useMemo(
+    () => p.nearChallenges.filter((entry) => hosted && entry.dungeonId === hosted.id),
+    [p.nearChallenges, hosted],
+  )
+  const _latestNear = nearChallenges[0] ?? null
 
   useEffect(() => {
     let live = true
@@ -91,7 +156,7 @@ export function FriendScreen() {
       setNearPhase('idle')
       toast.success(`Connected as ${session.identity.accountId}`)
     } catch (cause) {
-      const msg = cause instanceof Error ? cause.message : 'Could not connect MyNearWallet'
+      const msg = cause instanceof Error ? cause.message : 'Could not connect NEAR wallet'
       setNearError(msg)
       setNearPhase('idle')
     }
@@ -111,6 +176,7 @@ export function FriendScreen() {
     setNearError(null)
     try {
       const registration = await services.near.registry.registerChallenge(hosted, {
+        depositYocto: 50_000_000_000_000_000_000_000n, // 0.05 NEAR
         onPhase: (phase: NearTransactionPhase) => setNearPhase(phase),
       })
 
@@ -129,23 +195,49 @@ export function FriendScreen() {
         at: Date.now(),
       })
 
-      // Also persist to Supabase backend
-      await publishDungeon({
+      // Independent transaction verification
+      await verifyNearPublishingTransaction({
+        txHash: registration.txHash,
+        creatorAccountId: registration.creator,
+        expectedChallengeId: registration.challengeId.toString(),
         dungeon: hosted,
-        creatorNearAccount: registration.creator,
+      })
+
+      // Sync to Supabase
+      const syncResult = await syncVerifiedPublishingToSupabase({
+        txHash: registration.txHash,
+        creatorAccountId: registration.creator,
+        challengeId: registration.challengeId.toString(),
+        dungeon: hosted,
+        shareCode,
+        registeredAt: Date.now(),
+      })
+
+      // Add to verified community catalog
+      addOrUpdateCommunityDungeon({
+        id: hosted.id,
         title: hosted.name,
-        par: hosted.par ?? 20,
+        creator: registration.creator,
+        creatorType: 'near',
         difficulty: hosted.difficulty,
-        nearRegistryId: registration.challengeId,
+        par: hosted.par ?? 20,
+        plays: 0,
+        clears: 0,
+        shareCode,
+        createdAt: hosted.createdAt,
+        dungeon: hosted,
+        verifiedOnChain: true,
+        nearChallengeId: registration.challengeId.toString(),
+        nearTxHash: registration.txHash,
+        origin: 'on-chain',
       })
+      void refreshCatalog()
 
-      await createChallenge({
-        dungeonId: hosted.id,
-        creatorNearAccount: registration.creator,
-        challengeCode: shareCode,
-      })
-
-      toast.success(`Challenge #${registration.challengeId} registered on NEAR testnet!`)
+      if (syncResult.synced) {
+        toast.success(`Challenge #${registration.challengeId} registered & synced to shared database!`)
+      } else {
+        toast.success(`Challenge #${registration.challengeId} registered on NEAR testnet!`)
+      }
     } catch (cause) {
       setNearError(cause instanceof Error ? cause.message : 'NEAR testnet registration failed')
     } finally {
@@ -163,12 +255,18 @@ export function FriendScreen() {
         return setError(err instanceof Error ? err.message : 'Malformed TRI1 challenge code.')
       }
 
+      if (!NEAR_CONFIG.configured) {
+        return setError('NEAR testnet registry is not configured. Set VITE_NEAR_REGISTRY_ACCOUNT in .env to verify on-chain challenges.')
+      }
+
       if (
         decoded.registry.chain !== 'near' ||
         decoded.registry.network !== 'testnet' ||
         decoded.registry.registry !== NEAR_CONFIG.registryAccountId
       ) {
-        return setError('This challenge was registered on an unsupported registry or network.')
+        return setError(
+          `This challenge expects NEAR registry "${decoded.registry.registry}" on ${decoded.registry.network}, but this app is configured for "${NEAR_CONFIG.registryAccountId}".`,
+        )
       }
 
       const candidate: Dungeon = {
@@ -217,22 +315,10 @@ export function FriendScreen() {
     const canonicalCode = extractCanonicalCode(text)
     if (canonicalCode) return lookupNear(canonicalCode)
 
-    // Check Supabase backend for registered challenge code
-    setChecking(true)
-    try {
-      const challengeRec = await getChallengeByCode(text)
-      if (challengeRec) {
-        if (challengeRec.challenge_code.startsWith('TRI1.')) {
-          return lookupNear(challengeRec.challenge_code)
-        }
-      }
-    } catch {
-      // continue to local fallback
-    }
-
-    // Local room code fallback
+    // TR1 challenge code or local room code fallback
+    const tr1 = extractCode(text)
     const stored = p.rooms[text.toUpperCase()]
-    const code = stored || (/^[A-Za-z0-9_-]+$/.test(text) ? text : null)
+    const code = tr1 || stored || (/^[A-Za-z0-9_.-]+$/.test(text) ? text : null)
     const dungeon = code ? decodeDungeon(code) : null
     if (!code || !dungeon) {
       setChecking(false)
@@ -247,7 +333,7 @@ export function FriendScreen() {
 
     setJoined({
       dungeon: { ...dungeon, par: validation.par ?? undefined },
-      verified: { chain: 'supabase', id: text, creator: dungeon.creator.displayName },
+      verified: null,
     })
     setChecking(false)
   }
@@ -260,183 +346,359 @@ export function FriendScreen() {
     return () => clearTimeout(timer)
   }, [])
 
-  const play = (dungeon: Dungeon, own: boolean) => {
-    go({
-      name: 'play',
-      dungeon: { ...dungeon, par: dungeon.par ?? validateDungeon(dungeon).par ?? undefined },
-      mode: own ? 'test' : 'friend',
-      back: { name: 'friend' },
-      next: null,
-      attempt: Date.now(),
-    })
-  }
+  const playDungeon = useCallback(
+    (dungeonToPlay: Dungeon, own: boolean) => {
+      recordCommunityDungeonRun(dungeonToPlay.id, false)
+      const val = validateDungeon(dungeonToPlay)
+      const resolvedPar = dungeonToPlay.par ?? (val.ok && val.par ? val.par : undefined)
+      go({
+        name: 'play',
+        dungeon: { ...dungeonToPlay, par: resolvedPar },
+        mode: own ? 'test' : 'friend',
+        back: { name: 'friend' },
+        next: null,
+        attempt: Math.floor(performance.now()),
+      })
+    },
+    [go],
+  )
 
   const nearBusy = nearPhase === 'connecting' || nearPhase === 'wallet-approval' || nearPhase === 'pending-finality'
 
+  const filteredCommunity = useMemo(
+    () => searchAndFilterCommunityDungeons(catalog, communitySearch, diffFilter),
+    [catalog, communitySearch, diffFilter],
+  )
+
   return (
-    <Screen title="Challenge a Friend" onBack={() => go({ name: 'modes' })}>
+    <Screen title="Community & Challenges" onBack={() => go({ name: 'modes' })}>
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-800 p-1" role="tablist">
-          {(['host', 'join'] as const).map((nextTab) => (
-            <button
-              key={nextTab}
-              role="tab"
-              aria-selected={tab === nextTab}
-              onClick={() => setTab(nextTab)}
-              className={`min-h-11 rounded-lg font-display text-sm font-semibold uppercase tracking-wider transition ${tab === nextTab ? 'bg-volt-500 text-white shadow-volt' : 'text-zinc-400 hover:text-zinc-100'}`}
-            >
-              {nextTab === 'host' ? 'Send a challenge' : 'Join a challenge'}
-            </button>
-          ))}
+        {/* Navigation Tabs */}
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-ink-800 p-1" role="tablist">
+          {(
+            [
+              { key: 'community', label: 'Community', icon: Compass },
+              { key: 'host', label: 'My Creations', icon: Swords },
+              { key: 'join', label: 'Enter Code', icon: Link2 },
+            ] as const
+          ).map((t) => {
+            const Icon = t.icon
+            return (
+              <button
+                key={t.key}
+                role="tab"
+                aria-selected={tab === t.key}
+                onClick={() => {
+                  setTab(t.key)
+                  if (t.key === 'community') void refreshCatalog()
+                }}
+                className={`flex min-h-11 items-center justify-center gap-1.5 rounded-lg font-display text-xs sm:text-sm font-semibold uppercase tracking-wider transition ${
+                  tab === t.key ? 'bg-volt-500 text-white shadow-volt' : 'text-zinc-400 hover:text-zinc-100'
+                }`}
+              >
+                <Icon size={15} />
+                <span>{t.label}</span>
+              </button>
+            )
+          })}
         </div>
 
-        <Notice>
-          NEAR Protocol (<span className="text-volt-300">testnet</span>): Challenges are registered on-chain with deterministic SHA-256 hashes and stored in Supabase.
-        </Notice>
+        {/* --- TAB 1: COMMUNITY CATALOG --- */}
+        {tab === 'community' && (
+          <div className="flex flex-col gap-3">
+            {/* Backend Sync Status & Pending Sync Notice */}
+            <div className="flex items-center justify-between text-xs px-1">
+              <div>
+                {isRemoteCatalog ? (
+                  <span className="inline-flex items-center gap-1.5 text-emerald-400 font-pixel">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Cloud Backend Active (Supabase)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-amber-400 font-pixel">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    Local-First Catalog Mode
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => void refreshCatalog()}
+                className="text-zinc-400 hover:text-zinc-200 font-pixel text-xs underline"
+              >
+                Refresh
+              </button>
+            </div>
 
-        {tab === 'host' && (
-          <>
-            {p.published.length === 0 ? (
-              <Panel className="flex flex-col items-center gap-3 py-10 text-center">
-                <Hammer size={28} className="text-volt-400" />
-                <div className="font-display text-lg font-bold">No dungeons to share yet</div>
-                <p className="max-w-xs text-sm text-zinc-400">Build and save a solver-checked dungeon in Creator Mode first.</p>
-                <Button variant="primary" onClick={() => go({ name: 'editor' })}>Open Creator Mode</Button>
+            {pendingSyncs.length > 0 && (
+              <div className="rounded-xl border border-volt-500/30 bg-volt-500/10 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="text-xs text-zinc-200">
+                  <span className="font-bold text-volt-300">{pendingSyncs.length} verified challenge(s)</span> pending cloud synchronization.
+                </div>
+                <Button size="sm" variant="volt" onClick={() => void syncAllPending()} disabled={isSyncing}>
+                  {isSyncing ? <Loader2 size={12} className="animate-spin" /> : 'Sync to Cloud'}
+                </Button>
+              </div>
+            )}
+
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-3 text-zinc-400" />
+                <input
+                  value={communitySearch}
+                  onChange={(e) => setCommunitySearch(e.target.value)}
+                  placeholder="Search dungeons by title or creator..."
+                  className="h-10 w-full rounded-xl border border-ink-600 bg-ink-900 pl-9 pr-3 text-sm text-zinc-100 outline-none focus:border-volt-400"
+                />
+              </div>
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                {(['all', 2, 3, 4] as const).map((filterVal) => (
+                  <button
+                    key={String(filterVal)}
+                    onClick={() => setDiffFilter(filterVal)}
+                    className={`rounded-lg px-2.5 py-1.5 font-pixel text-xs transition ${
+                      diffFilter === filterVal
+                        ? 'bg-volt-500 text-ink-950 font-bold'
+                        : 'border border-ink-600 bg-ink-800 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {filterVal === 'all' ? 'All' : `D${filterVal}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Community Dungeon Cards */}
+            {filteredCommunity.length === 0 ? (
+              <Panel className="py-8 text-center">
+                <p className="text-zinc-400 text-sm">No community dungeons found matching your filters.</p>
               </Panel>
             ) : (
-              <>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {p.published.map((dungeon, index) => (
-                    <button key={dungeon.id} onClick={() => setSelected(index)} className={`shrink-0 rounded-xl border p-2 text-left transition ${index === selected ? 'border-volt-400 bg-volt-500/10' : 'border-ink-500 bg-ink-800/70'}`}>
-                      <MiniDungeon dungeon={dungeon} px={72} />
-                      <div className="mt-1 max-w-[72px] truncate text-xs font-semibold">{dungeon.name}</div>
-                    </button>
-                  ))}
-                </div>
-                {hosted && (
-                  <>
-                    <Panel className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-display text-lg font-bold">{hosted.name}</div>
-                          <div className="text-xs text-zinc-500">Created by {hosted.creator.displayName}</div>
-                        </div>
-                        <Difficulty level={hosted.difficulty} />
-                      </div>
-                      <Button onClick={() => play(hosted, true)}><Play size={16} className="fill-current" /> Test-run it (free)</Button>
-                    </Panel>
-
-                    {/* NEAR Registry Section */}
-                    <Panel className="flex flex-col gap-3 border border-acid-500/30">
-                      <div className="flex items-center justify-between">
-                        <Label>NEAR registry · TRI1</Label>
-                        <span className="font-pixel text-[11px] text-acid-400">{NEAR_NETWORK_LABEL}</span>
-                      </div>
-
-                      {!NEAR_CONFIG.configured && (
-                        <p className="text-xs text-zinc-400">Set VITE_NEAR_REGISTRY_ACCOUNT in .env to activate the testnet registry.</p>
-                      )}
-
-                      {NEAR_CONFIG.configured && !nearAccount && (
-                        <div className="flex flex-col gap-2">
-                          <p className="text-xs text-zinc-400">Connect MyNearWallet to register this challenge on NEAR testnet.</p>
-                          <Button variant="volt" onClick={() => void connectNear()} disabled={nearBusy}>
-                            {nearBusy ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />} Connect MyNearWallet
-                          </Button>
-                        </div>
-                      )}
-
-                      {NEAR_CONFIG.configured && nearAccount && (
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between rounded-lg bg-ink-900 p-2 text-xs">
-                            <span className="text-zinc-400">Connected:</span>
-                            <span className="font-mono text-acid-300">{nearAccount}</span>
-                            <button onClick={() => void disconnectNear()} className="text-zinc-500 hover:text-zinc-300" title="Disconnect">
-                              <LogOut size={14} />
-                            </button>
-                          </div>
-
-                          {latestNear && (
-                            <div className="flex flex-col gap-2 rounded-xl bg-ink-900/60 p-3">
-                              <div className="flex items-center justify-between">
-                                <Label>Challenge #{latestNear.challengeId} registered</Label>
-                                <a href={nearTxUrl(latestNear.txHash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-acid-400 hover:underline">
-                                  Receipt <ExternalLink size={12} />
-                                </a>
-                              </div>
-                              <div className="break-all rounded-lg bg-ink-950 p-2 font-mono text-[11px] text-zinc-300">{latestNear.shareCode}</div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <Button size="sm" onClick={() => void copy(latestNear.shareCode, 'TRI1 code')}>
-                                  <Copy size={14} /> Copy code
-                                </Button>
-                                <Button size="sm" variant="volt" disabled={!nearLink} onClick={() => nearLink && void copy(nearLink, 'Challenge link')}>
-                                  <Link2 size={14} /> Copy link
-                                </Button>
-                              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {filteredCommunity.map((comm) => {
+                  const clearPct = comm.plays > 0 ? Math.round((comm.clears / comm.plays) * 100) : 0
+                  return (
+                    <Panel key={comm.id} className="flex flex-col justify-between gap-3">
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h3 className="font-display font-bold text-base text-zinc-100 leading-tight">
+                                {comm.title}
+                              </h3>
+                              {comm.verifiedOnChain && (
+                                <span title="Verified on NEAR Testnet">
+                                  <BadgeCheck size={16} className="text-volt-400" />
+                                </span>
+                              )}
+                              {comm.origin === 'preset' ? (
+                                <span className="rounded bg-ink-700 px-1.5 py-0.2 text-[10px] text-zinc-300 font-pixel">
+                                  Preset
+                                </span>
+                              ) : comm.verifiedOnChain ? (
+                                <span className="rounded bg-volt-500/20 px-1.5 py-0.2 text-[10px] text-volt-300 font-pixel border border-volt-500/30">
+                                  NEAR #{comm.nearChallengeId ?? 'On-Chain'}
+                                </span>
+                              ) : null}
                             </div>
-                          )}
-
-                          <Button
-                            variant={latestNear ? 'ghost' : 'volt'}
-                            disabled={nearBusy}
-                            onClick={() => void registerNearChallenge()}
-                          >
-                            {nearBusy && <Loader2 size={16} className="animate-spin" />}
-                            {nearPhase === 'wallet-approval' ? 'Confirm in MyNearWallet...' : nearPhase === 'pending-finality' ? 'Awaiting testnet finality...' : latestNear ? 'Re-register on NEAR' : 'Register challenge on NEAR'}
-                          </Button>
+                            <div className="text-xs text-zinc-400 mt-0.5 truncate max-w-[220px]">
+                              by {comm.creator}
+                            </div>
+                          </div>
+                          <Difficulty level={comm.difficulty} />
                         </div>
-                      )}
 
-                      {nearError && <Notice tone="error">{nearError}</Notice>}
+                        <div className="mt-3 flex items-center justify-between text-xs text-zinc-400 font-pixel">
+                          <span>Par: {comm.par} moves</span>
+                          <span>
+                            {comm.plays} runs · {comm.clears} clears ({clearPct}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-ink-700/60 gap-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              void (async () => {
+                                const link = await buildShareLink(`/?c=${comm.shareCode}`)
+                                await copy(link, 'Share link')
+                              })()
+                            }}
+                            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-volt-300"
+                            title="Copy share link"
+                          >
+                            <Share2 size={13} /> Link
+                          </button>
+                          <button
+                            onClick={() => void copy(comm.shareCode, 'TRI1 code')}
+                            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-volt-300"
+                            title="Copy TRI1 share code"
+                          >
+                            <Copy size={13} /> Code
+                          </button>
+                        </div>
+                        <Button size="sm" variant="volt" onClick={() => playDungeon(comm.dungeon, false)}>
+                          <Play size={14} /> Play
+                        </Button>
+                      </div>
                     </Panel>
-                  </>
-                )}
-              </>
+                  )
+                })}
+              </div>
             )}
-          </>
+          </div>
         )}
 
-        {tab === 'join' && (
-          <>
-            <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); void lookup(input) }}>
-              <input
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="Paste TRI1 code, share link, or challenge code"
-                aria-label="Challenge code"
-                className="h-12 min-w-0 flex-1 rounded-xl border border-ink-500 bg-ink-900 px-3 text-zinc-50 outline-none placeholder:text-zinc-600 focus:border-volt-400"
-              />
-              <Button variant="volt" type="submit" disabled={checking}>
-                {checking ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} Find
-              </Button>
-            </form>
-
-            {error && <Notice tone="error">{error}</Notice>}
-
-            {joined && (
-              <Panel className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-lg font-bold">{joined.dungeon.name}</div>
-                    <div className="text-xs text-zinc-400">Created by {joined.dungeon.creator.displayName}</div>
-                  </div>
-                  {joined.verified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-acid-500/20 px-2 py-0.5 text-xs text-acid-300">
-                      <BadgeCheck size={14} /> {joined.verified.chain.toUpperCase()} Verified
-                    </span>
-                  )}
+        {/* --- TAB 2: HOST / MY CREATIONS --- */}
+        {tab === 'host' && (
+          <div className="flex flex-col gap-4">
+            <Panel>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wallet size={18} className="text-volt-400" />
+                  <span className="font-display font-bold">NEAR Protocol ({NEAR_NETWORK_LABEL})</span>
                 </div>
-
-                <div className="flex justify-center">
-                  <MiniDungeon dungeon={joined.dungeon} px={160} />
+                {nearAccount ? (
+                  <Button size="sm" variant="ghost" onClick={() => void disconnectNear()}>
+                    <LogOut size={14} /> Disconnect
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="volt" onClick={() => void connectNear()} disabled={nearBusy}>
+                    Connect Wallet
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400">
+                {nearAccount
+                  ? `Signed in as ${nearAccount}. Register challenges on-chain with 0.05 NEAR.`
+                  : 'Connect your NEAR wallet to register immutable challenges and prove authorship on-chain.'}
+              </p>
+              {nearError && (
+                <div className="mt-2">
+                  <Notice tone="error">{nearError}</Notice>
                 </div>
+              )}
+            </Panel>
 
-                <Button variant="volt" size="lg" onClick={() => play(joined.dungeon, false)}>
-                  <Play size={18} className="fill-current" /> Play this challenge
+            {p.published.length === 0 ? (
+              <Panel className="py-8 text-center">
+                <p className="text-zinc-400 mb-3 text-sm">You haven't published any dungeons yet.</p>
+                <Button variant="volt" onClick={() => go({ name: 'editor' })}>
+                  <Hammer size={16} /> Open Dungeon Creator
                 </Button>
               </Panel>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {p.published.map((d, index) => {
+                  const nearRec = p.nearChallenges.find((nc) => nc.dungeonId === d.id)
+                  return (
+                    <Panel key={d.id} className="flex flex-col gap-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-display font-bold text-base">{d.name}</span>
+                            {nearRec && (
+                              <span className="flex items-center gap-1 rounded bg-volt-500/20 px-1.5 py-0.5 font-pixel text-[10px] text-volt-300">
+                                <BadgeCheck size={12} /> NEAR #{nearRec.challengeId}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-zinc-400">Par: {d.par ?? 20} moves · Difficulty D{d.difficulty}</span>
+                        </div>
+                        <Difficulty level={d.difficulty} />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-ink-700/60">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              void (async () => {
+                                const code = nearRec?.shareCode || d.id
+                                const link = await buildShareLink(`/?c=${code}`)
+                                await copy(link, 'Challenge link')
+                              })()
+                            }}
+                          >
+                            <Copy size={13} /> Copy Link
+                          </Button>
+                          {!nearRec && (
+                            <Button
+                              size="sm"
+                              variant="volt"
+                              disabled={!nearAccount || nearBusy}
+                              onClick={() => {
+                                setSelected(index)
+                                void registerNearChallenge()
+                              }}
+                            >
+                              Register (0.05 NEAR)
+                            </Button>
+                          )}
+                        </div>
+                        <Button size="sm" onClick={() => playDungeon(d, true)}>
+                          <Play size={14} /> Practice
+                        </Button>
+                      </div>
+                    </Panel>
+                  )
+                })}
+              </div>
             )}
-          </>
+          </div>
+        )}
+
+        {/* --- TAB 3: JOIN BY CODE --- */}
+        {tab === 'join' && (
+          <div className="flex flex-col gap-3">
+            <Panel>
+              <Label className="mb-2">Enter Challenge Code or Link</Label>
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Paste TRI1... share code, link, or room code..."
+                  className="h-11 flex-1 rounded-xl border border-ink-600 bg-ink-900 px-3 text-sm text-zinc-100 outline-none focus:border-volt-400"
+                />
+                <Button variant="volt" onClick={() => void lookup(input)} disabled={checking || !input.trim()}>
+                  {checking ? <Loader2 size={16} className="animate-spin" /> : 'Inspect'}
+                </Button>
+              </div>
+              {error && (
+                <div className="mt-2">
+                  <Notice tone="error">{error}</Notice>
+                </div>
+              )}
+            </Panel>
+
+            {joined && (
+              <Panel className="flex flex-col gap-3 border-volt-400">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-display font-bold text-lg">{joined.dungeon.name}</span>
+                      {joined.verified && (
+                        <span className="flex items-center gap-1 rounded bg-volt-500/20 px-2 py-0.5 font-pixel text-xs text-volt-300">
+                          <BadgeCheck size={14} /> Verified #{joined.verified.id}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-400">by {joined.dungeon.creator.displayName}</span>
+                  </div>
+                  <Difficulty level={joined.dungeon.difficulty} />
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-ink-700/60">
+                  <span className="font-pixel text-xs text-zinc-400">Par: {joined.dungeon.par ?? 20} moves</span>
+                  <Button variant="volt" onClick={() => playDungeon(joined.dungeon, false)}>
+                    <Play size={16} /> Enter Dungeon
+                  </Button>
+                </div>
+              </Panel>
+            )}
+          </div>
         )}
       </div>
     </Screen>

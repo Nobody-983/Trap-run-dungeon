@@ -68,7 +68,7 @@ export function ProfileScreen() {
               </div>
             </div>
           </div>
-          <p className="mt-3 text-xs text-zinc-500">XP, levels and leaderboard times come from skill and consistency only. Profile syncs securely with your NEAR account and Supabase.</p>
+          <p className="mt-3 text-xs text-zinc-500">XP, levels and leaderboard times come from skill and consistency only. Profile syncs securely with your NEAR account.</p>
           <div className="mt-3">
             <SignedInDetails />
           </div>

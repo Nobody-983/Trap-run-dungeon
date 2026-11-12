@@ -65,3 +65,6 @@ export function solve(d: Dungeon): SolveResult {
   }
   return { solvable: false, path: [], explored: head }
 }
+
+export const solveDungeon = solve
+

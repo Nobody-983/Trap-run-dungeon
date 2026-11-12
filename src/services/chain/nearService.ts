@@ -3,13 +3,19 @@ import { canonicalDungeonHash, type CanonicalDungeonInput } from '../../game/can
 import { NEAR_CONFIG, assertNearConfigured, formatNearError } from './nearConfig'
 import {
   buildGetChallengeCall,
+  buildGetDungeonCall,
   buildGetChallengeByHashCall,
   buildIsDungeonRegisteredCall,
   buildVerifyCreatorCall,
   buildGetChallengeCountCall,
+  buildGetDungeonCountCall,
   buildGetChallengesByCreatorCall,
+  buildGetCreatorDungeonsCall,
   buildRegisterChallengeCall,
+  buildPublishDungeonCall,
   buildUpdateMetadataCall,
+  buildUpdateDungeonCall,
+  buildUnpublishDungeonCall,
   decodeNearRegistryChallenge,
   decodeNearRegistryChallengeList,
   verifyNearRegistryChallenge,
@@ -31,6 +37,23 @@ export interface NearRegistration {
 export interface NearRegistryService {
   readonly wallet: NearWalletProvider
   isConfigured(): Promise<boolean>
+  publishDungeon(
+    dungeon: CanonicalDungeonInput,
+    options?: { depositYocto?: bigint; metadataUri?: string | null; onPhase?: (phase: NearTransactionPhase) => void },
+  ): Promise<NearRegistration>
+  updateDungeon(
+    dungeonId: bigint,
+    metadataUri: string | null,
+    options?: { depositYocto?: bigint; onPhase?: (phase: NearTransactionPhase) => void },
+  ): Promise<{ txHash: string }>
+  unpublishDungeon(
+    dungeonId: bigint,
+    options?: { onPhase?: (phase: NearTransactionPhase) => void },
+  ): Promise<{ txHash: string }>
+  getDungeon(dungeonId: bigint): Promise<NearRegistryChallenge | null>
+  getCreatorDungeons(creator: string, fromIndex?: bigint, limit?: number): Promise<NearRegistryChallenge[]>
+  getDungeonCount(): Promise<bigint>
+  // Legacy methods
   registerChallenge(
     dungeon: CanonicalDungeonInput,
     options?: { depositYocto?: bigint; metadata?: string | null; onPhase?: (phase: NearTransactionPhase) => void },
@@ -68,6 +91,12 @@ export function createNearRegistryService(
         return false
       }
     },
+    publishDungeon: (dungeon, options) => publishDungeon(wallet, transport, dungeon, options),
+    updateDungeon: (dungeonId, metadataUri, options) => updateDungeon(wallet, dungeonId, metadataUri, options),
+    unpublishDungeon: (dungeonId, options) => unpublishDungeon(wallet, dungeonId, options),
+    getDungeon: (dungeonId) => getDungeon(transport, dungeonId),
+    getCreatorDungeons: (creator, fromIndex, limit) => getCreatorDungeons(transport, creator, fromIndex, limit),
+    getDungeonCount: () => getDungeonCount(transport),
     registerChallenge: (dungeon, options) => registerChallenge(wallet, transport, dungeon, options),
     updateMetadata: (challengeId, metadata, options) => updateMetadata(wallet, challengeId, metadata, options),
     getChallenge: (challengeId) => getChallenge(transport, challengeId),
@@ -84,6 +113,130 @@ export function createNearRegistryService(
         network: 'testnet',
         registryAccountId: NEAR_CONFIG.registryAccountId,
       }),
+  }
+}
+
+async function publishDungeon(
+  wallet: NearWalletProvider,
+  transport: NearRegistryTransport,
+  dungeon: CanonicalDungeonInput,
+  options?: { depositYocto?: bigint; metadataUri?: string | null; onPhase?: (phase: NearTransactionPhase) => void },
+): Promise<NearRegistration> {
+  assertNearConfigured()
+  const creator = wallet.accountId
+  if (!creator) throw new Error('Connect MyNearWallet first')
+  try {
+    const dungeonHash = await canonicalDungeonHash(dungeon)
+    const request = buildPublishDungeonCall(
+      NEAR_CONFIG.registryAccountId,
+      dungeonHash,
+      options?.depositYocto ?? NEAR_CONFIG.storageDepositYocto,
+      options?.metadataUri,
+    )
+    const outcome = await wallet.signAndSendRegistryCall(request, options?.onPhase)
+    assertTransactionSuccess(outcome)
+    const dungeonId = decodeChallengeId(outcome)
+    const challenge = await getDungeon(transport, dungeonId)
+    if (!challenge) throw new Error(`Dungeon #${dungeonId} was not found after the transaction finalized`)
+    const verification = await verifyNearRegistryChallenge({
+      dungeon,
+      challenge,
+      expectedCreator: creator,
+      network: 'testnet',
+      registryAccountId: NEAR_CONFIG.registryAccountId,
+    })
+    if (!verification.valid) throw new Error(verification.reason ?? 'The finalized registration could not be verified')
+    return {
+      challenge,
+      challengeId: dungeonId,
+      creator,
+      txHash: transactionHash(outcome),
+      gasBurnt: outcome.transaction_outcome.outcome.gas_burnt.toString(),
+    }
+  } catch (error) {
+    throw new Error(formatNearError(error, 'Dungeon publishing failed'))
+  }
+}
+
+async function updateDungeon(
+  wallet: NearWalletProvider,
+  dungeonId: bigint,
+  metadataUri: string | null,
+  options?: { depositYocto?: bigint; onPhase?: (phase: NearTransactionPhase) => void },
+): Promise<{ txHash: string }> {
+  assertNearConfigured()
+  const creator = wallet.accountId
+  if (!creator) throw new Error('Connect MyNearWallet first')
+  try {
+    const request = buildUpdateDungeonCall(
+      NEAR_CONFIG.registryAccountId,
+      dungeonId,
+      metadataUri,
+      options?.depositYocto,
+    )
+    const outcome = await wallet.signAndSendRegistryCall(request, options?.onPhase)
+    assertTransactionSuccess(outcome)
+    return { txHash: transactionHash(outcome) }
+  } catch (error) {
+    throw new Error(formatNearError(error, 'Dungeon update failed'))
+  }
+}
+
+async function unpublishDungeon(
+  wallet: NearWalletProvider,
+  dungeonId: bigint,
+  options?: { onPhase?: (phase: NearTransactionPhase) => void },
+): Promise<{ txHash: string }> {
+  assertNearConfigured()
+  const creator = wallet.accountId
+  if (!creator) throw new Error('Connect MyNearWallet first')
+  try {
+    const request = buildUnpublishDungeonCall(
+      NEAR_CONFIG.registryAccountId,
+      dungeonId,
+    )
+    const outcome = await wallet.signAndSendRegistryCall(request, options?.onPhase)
+    assertTransactionSuccess(outcome)
+    return { txHash: transactionHash(outcome) }
+  } catch (error) {
+    throw new Error(formatNearError(error, 'Dungeon unpublish failed'))
+  }
+}
+
+async function getDungeon(transport: NearRegistryTransport, dungeonId: bigint): Promise<NearRegistryChallenge | null> {
+  assertNearConfigured()
+  try {
+    const response = await transport.viewFunction<unknown>(buildGetDungeonCall(NEAR_CONFIG.registryAccountId, dungeonId))
+    return response ? decodeNearRegistryChallenge(response) : null
+  } catch (error) {
+    throw new Error(formatNearError(error, `Could not retrieve dungeon #${dungeonId}`))
+  }
+}
+
+async function getCreatorDungeons(
+  transport: NearRegistryTransport,
+  creator: string,
+  fromIndex: bigint = 0n,
+  limit = 20,
+): Promise<NearRegistryChallenge[]> {
+  assertNearConfigured()
+  try {
+    const response = await transport.viewFunction<unknown>(
+      buildGetCreatorDungeonsCall(NEAR_CONFIG.registryAccountId, creator, fromIndex, limit),
+    )
+    return decodeNearRegistryChallengeList(response)
+  } catch (error) {
+    throw new Error(formatNearError(error, `Could not retrieve dungeons for ${creator}`))
+  }
+}
+
+async function getDungeonCount(transport: NearRegistryTransport): Promise<bigint> {
+  assertNearConfigured()
+  try {
+    const response = await transport.viewFunction<string>(buildGetDungeonCountCall(NEAR_CONFIG.registryAccountId))
+    return BigInt(response)
+  } catch (error) {
+    throw new Error(formatNearError(error, 'Could not retrieve dungeon count'))
   }
 }
 

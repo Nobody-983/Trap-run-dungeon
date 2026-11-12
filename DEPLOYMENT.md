@@ -27,12 +27,12 @@ cargo build --manifest-path near/registry/Cargo.toml --target wasm32-unknown-unk
 
 The compiled WASM will be generated at:
 ```
-near/registry/target/wasm32-unknown-unknown/release/trap_run_registry.wasm
+near/registry/target/near/trap_run_registry.wasm
 ```
 
 **Artifact Properties:**
-- **Binary Size:** 154,985 bytes
-- **SHA-256 Checksum:** `21d87595178bc938f632329439c84c7ced0b36ac80819b3c22dffdb179addeb6`
+- **Binary Size:** 180,897 bytes (~177 KB)
+- **SHA-256 Checksum:** `48ef65d72a26f71ecaf0a63b47bfed3ca4a289b94e379bcca9215ce642ad10ee`
 
 ### Step 2: Deploy to NEAR Testnet
 Using `near-cli-rs`:
@@ -40,10 +40,11 @@ Using `near-cli-rs`:
 # 1. Login with your testnet account if not already authenticated
 near account login network-config testnet
 
-# 2. Deploy the WASM artifact to your testnet account (e.g. traprun-registry.testnet)
-near contract deploy traprun-registry.testnet \
-  use-file near/registry/target/wasm32-unknown-unknown/release/trap_run_registry.wasm \
-  without-init-call \
+# 2. Deploy and initialize the contract in a single transaction
+near contract deploy <your-account>.testnet \
+  use-file near/registry/target/near/trap_run_registry.wasm \
+  with-init-call init \
+  as-json '{"owner_id": "<your-account>.testnet"}' \
   network-config testnet \
   sign-with-keychain \
   send
@@ -52,9 +53,18 @@ near contract deploy traprun-registry.testnet \
 ### Step 3: Verify Deployed Contract State
 Test view calls against the deployed contract:
 ```bash
-near contract call-as-read-only traprun-registry.testnet get_challenge_count \
-  network-config testnet \
-  now
+# Verify Owner
+near contract call-as-read-only <your-account>.testnet get_owner \
+  network-config testnet now
+
+# Verify Total Challenge Count
+near contract call-as-read-only <your-account>.testnet get_challenge_count \
+  network-config testnet now
+
+# Verify Challenges Pagination
+near contract call-as-read-only <your-account>.testnet get_challenges \
+  as-json '{"from_index": "0", "limit": 10}' \
+  network-config testnet now
 ```
 
 ---
@@ -71,6 +81,7 @@ Migrations are located in `supabase/migrations/`:
 - `20261111000001_initial_schema.sql`: Core tables, indexes, and constraints.
 - `20261111000002_rls_policies.sql`: Row Level Security policies.
 - `20261111000003_leaderboard_views_and_functions.sql`: Views & functions for fast querying.
+- `20261111000004_dungeon_stats_runs_ratings_and_verification.sql`: Stats, runs, ratings, triggers, and on-chain verification schema.
 
 You can apply them using the Supabase CLI or SQL Editor:
 
@@ -84,7 +95,14 @@ supabase db push
 ```
 
 **Via Supabase Web Console:**
-Open the **SQL Editor** in Supabase and paste the contents of the migration files in numerical order (`000001`, `000002`, `000003`).
+Open the **SQL Editor** in Supabase and execute the contents of the migration files in numerical order (`000001`, `000002`, `000003`, `000004`).
+
+### Step 3: Deploy Verification Edge Function (Optional)
+To independently verify publishing transactions server-side:
+```bash
+supabase functions deploy verify-publishing --no-verify-jwt
+supabase secrets set NEAR_REGISTRY_CONTRACT=<your-account>.testnet
+```
 
 ---
 
@@ -101,7 +119,7 @@ Configure the environment variables:
 # NEAR Configuration
 VITE_NEAR_NETWORK=testnet
 VITE_NEAR_REGISTRY_CONTRACT=traprun-registry.testnet
-VITE_NEAR_RPC_URL=https://rpc.testnet.near.org
+VITE_NEAR_RPC_URL=https://rpc.testnet.fastnear.com
 
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -131,3 +149,4 @@ netlify deploy --prod --dir=dist
 **Cloudflare Pages:**
 - Build command: `bun run build`
 - Build output directory: `dist`
+

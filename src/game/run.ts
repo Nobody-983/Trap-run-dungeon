@@ -177,6 +177,14 @@ export class RunController {
     this.start()
   }
 
+  heal(amount: number = 1): boolean {
+    if (this.snapshot.phase !== 'running') return false
+    if (this.snapshot.lives >= START_LIVES) return false
+    const nextLives = Math.min(START_LIVES, this.snapshot.lives + amount)
+    this.set({ lives: nextLives })
+    return true
+  }
+
   input(action: Action): void {
     const s = this.snapshot
     if (s.phase !== 'running') return

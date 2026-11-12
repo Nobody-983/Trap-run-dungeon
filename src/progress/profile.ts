@@ -55,6 +55,62 @@ export interface NearChallengeRecord {
   at: number
 }
 
+export interface PlayerInventory {
+  healthPotions: number
+  fullElixirs: number
+  energyCells: number
+}
+
+export interface PurchaseRecord {
+  id: string
+  itemId: string
+  name: string
+  price: number
+  kind: 'skin' | 'trail' | 'consumable'
+  at: number
+}
+
+export interface EconomyTransaction {
+  id: string
+  kind: 'credit' | 'debit'
+  amount: number
+  category: 'starter' | 'run_reward' | 'shop_purchase' | 'consumable_use'
+  referenceId: string
+  createdAt: number
+}
+
+export function reconcileEconomyBalance(ledger: EconomyTransaction[]): number {
+  if (!Array.isArray(ledger)) return 50
+  const seen = new Set<string>()
+  let balance = 0
+  for (const tx of ledger) {
+    if (!tx || !tx.id || seen.has(tx.id)) continue
+    seen.add(tx.id)
+    const amt = typeof tx.amount === 'number' && Number.isFinite(tx.amount) ? Math.max(0, Math.floor(tx.amount)) : 0
+    if (tx.kind === 'credit') {
+      balance += amt
+    } else if (tx.kind === 'debit') {
+      balance -= amt
+    }
+  }
+  return Math.max(0, balance)
+}
+
+export function mergeEconomyLedgers(
+  ledgerA: EconomyTransaction[] = [],
+  ledgerB: EconomyTransaction[] = [],
+): { ledger: EconomyTransaction[]; balance: number } {
+  const mergedMap = new Map<string, EconomyTransaction>()
+  for (const tx of [...ledgerA, ...ledgerB]) {
+    if (tx && tx.id && !mergedMap.has(tx.id)) {
+      mergedMap.set(tx.id, tx)
+    }
+  }
+  const merged = Array.from(mergedMap.values()).sort((a, b) => a.createdAt - b.createdAt)
+  const balance = reconcileEconomyBalance(merged)
+  return { ledger: merged, balance }
+}
+
 export interface Profile {
   version: 1
   id: string
@@ -64,6 +120,10 @@ export interface Profile {
   wallets: WalletIdentity[]
 
   xp: number
+  coins: number
+  economyLedger: EconomyTransaction[]
+  inventory: PlayerInventory
+  purchases: PurchaseRecord[]
   runs: number
   wins: number
   losses: number
@@ -91,6 +151,7 @@ export interface Profile {
   /** Short room code to share code, resolved on this device until a backend exists. */
   rooms: Record<string, string>
   draft: Draft | null
+  drafts: Record<string, Draft>
   settings: Settings
 
   health: HealthState
@@ -114,14 +175,34 @@ export const DEFAULT_SETTINGS: Settings = {
 const newId = (): string =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
+export const DEFAULT_INVENTORY: PlayerInventory = {
+  healthPotions: 1, // Starter health potion
+  fullElixirs: 0,
+  energyCells: 0,
+}
+
 export function createProfile(): Profile {
+  const profileId = newId()
+  const createdAt = Date.now()
+  const starterTx: EconomyTransaction = {
+    id: `starter:${profileId}`,
+    kind: 'credit',
+    amount: 50,
+    category: 'starter',
+    referenceId: 'welcome',
+    createdAt,
+  }
   return {
     version: 1,
-    id: newId(),
+    id: profileId,
     displayName: `RUNNER-${Math.floor(1000 + Math.random() * 9000)}`,
-    createdAt: Date.now(),
+    createdAt,
     wallets: [],
     xp: 0,
+    coins: 50, // Welcome gift of 50 coins
+    economyLedger: [starterTx],
+    inventory: { ...DEFAULT_INVENTORY },
+    purchases: [],
     runs: 0,
     wins: 0,
     losses: 0,
@@ -143,6 +224,7 @@ export function createProfile(): Profile {
     published: [],
     rooms: {},
     draft: null,
+    drafts: {},
     settings: { ...DEFAULT_SETTINGS },
     health: newHealth(),
     ownedSkins: [],
@@ -158,10 +240,36 @@ export function hydrateProfile(raw: unknown): Profile | null {
   const base = createProfile()
   const src = raw as Partial<Profile>
   if (typeof src.id !== 'string' || typeof src.xp !== 'number') return null
+
+  const rawLedger = Array.isArray(src.economyLedger) ? src.economyLedger : []
+  const ledger: EconomyTransaction[] =
+    rawLedger.length > 0
+      ? rawLedger
+      : [
+          {
+            id: `legacy:starter:${src.id}`,
+            kind: 'credit',
+            amount: typeof src.coins === 'number' ? Math.max(0, Math.floor(src.coins)) : 50,
+            category: 'starter',
+            referenceId: 'legacy_hydrate',
+            createdAt: typeof src.createdAt === 'number' ? src.createdAt : Date.now(),
+          },
+        ]
+  const reconciledCoins = reconcileEconomyBalance(ledger)
+
   return {
     ...base,
     ...src,
     version: 1,
+    coins: reconciledCoins,
+    economyLedger: ledger,
+    inventory: {
+      healthPotions: typeof src.inventory?.healthPotions === 'number' ? Math.max(0, Math.floor(src.inventory.healthPotions)) : base.inventory.healthPotions,
+      fullElixirs: typeof src.inventory?.fullElixirs === 'number' ? Math.max(0, Math.floor(src.inventory.fullElixirs)) : base.inventory.fullElixirs,
+      energyCells: typeof src.inventory?.energyCells === 'number' ? Math.max(0, Math.floor(src.inventory.energyCells)) : base.inventory.energyCells,
+    },
+    purchases: Array.isArray(src.purchases) ? src.purchases : [],
+    drafts: src.drafts && typeof src.drafts === 'object' ? src.drafts : {},
     streak: { ...base.streak, ...(src.streak ?? {}) },
     equipped: { ...base.equipped, ...(src.equipped ?? {}) },
     settings: { ...base.settings, ...(src.settings ?? {}) },

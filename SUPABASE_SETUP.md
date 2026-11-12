@@ -130,3 +130,4 @@ Performs ranked leaderboard calculation for any specified dungeon, joining profi
    VITE_SUPABASE_URL=https://<your-project-id>.supabase.co
    VITE_SUPABASE_ANON_KEY=<your-anon-key>
    ```
+

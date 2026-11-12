@@ -7,6 +7,16 @@ export interface ProfileRecord {
   display_name: string | null
   avatar_url: string | null
   bio: string | null
+  xp?: number
+  coins?: number
+  economy_ledger?: Json
+  inventory?: Json
+  equipped?: Json
+  unlocked?: Json
+  stats?: Json
+  streak?: Json
+  bests?: Json
+  clears?: Json
   created_at: string
   updated_at: string
 }
@@ -30,8 +40,41 @@ export interface DungeonRecord {
   difficulty: number
   status: 'draft' | 'published' | 'archived'
   near_registry_id: number | null
+  width?: number
+  height?: number
+  on_chain_tx_hash?: string | null
+  contract_account_id?: string | null
+  on_chain_verified?: boolean
+  on_chain_verified_at?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface DungeonStatsRecord {
+  dungeon_id: string
+  play_count: number
+  clear_count: number
+  completion_rate: number
+  updated_at: string
+}
+
+export interface DungeonRunRecord {
+  id: string
+  dungeon_id: string
+  player_near_account: string | null
+  result: 'win' | 'loss'
+  duration_ms: number | null
+  moves: number | null
+  created_at: string
+}
+
+export interface RatingRecord {
+  id: string
+  dungeon_id: string
+  player_near_account: string
+  rating: number
+  feedback: string | null
+  created_at: string
 }
 
 export interface ChallengeRecord {
@@ -124,6 +167,16 @@ export type Database = {
           display_name: string | null
           avatar_url: string | null
           bio: string | null
+          xp: number
+          coins: number
+          economy_ledger: Json
+          inventory: Json
+          equipped: Json
+          unlocked: Json
+          stats: Json
+          streak: Json
+          bests: Json
+          clears: Json
           created_at: string
           updated_at: string
         }
@@ -134,6 +187,16 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           bio?: string | null
+          xp?: number
+          coins?: number
+          economy_ledger?: Json
+          inventory?: Json
+          equipped?: Json
+          unlocked?: Json
+          stats?: Json
+          streak?: Json
+          bests?: Json
+          clears?: Json
           created_at?: string
           updated_at?: string
         }
@@ -144,6 +207,16 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           bio?: string | null
+          xp?: number
+          coins?: number
+          economy_ledger?: Json
+          inventory?: Json
+          equipped?: Json
+          unlocked?: Json
+          stats?: Json
+          streak?: Json
+          bests?: Json
+          clears?: Json
           created_at?: string
           updated_at?: string
         }
@@ -163,6 +236,12 @@ export type Database = {
           difficulty: number
           status: string
           near_registry_id: number | null
+          width?: number
+          height?: number
+          on_chain_tx_hash?: string | null
+          contract_account_id?: string | null
+          on_chain_verified?: boolean
+          on_chain_verified_at?: string | null
           created_at: string
           updated_at: string
         }
@@ -179,6 +258,12 @@ export type Database = {
           difficulty?: number
           status?: string
           near_registry_id?: number | null
+          width?: number
+          height?: number
+          on_chain_tx_hash?: string | null
+          contract_account_id?: string | null
+          on_chain_verified?: boolean
+          on_chain_verified_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -195,8 +280,95 @@ export type Database = {
           difficulty?: number
           status?: string
           near_registry_id?: number | null
+          width?: number
+          height?: number
+          on_chain_tx_hash?: string | null
+          contract_account_id?: string | null
+          on_chain_verified?: boolean
+          on_chain_verified_at?: string | null
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      dungeon_stats: {
+        Row: {
+          dungeon_id: string
+          play_count: number
+          clear_count: number
+          completion_rate: number
+          updated_at: string
+        }
+        Insert: {
+          dungeon_id: string
+          play_count?: number
+          clear_count?: number
+          completion_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          dungeon_id?: string
+          play_count?: number
+          clear_count?: number
+          completion_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dungeon_runs: {
+        Row: {
+          id: string
+          dungeon_id: string
+          player_near_account: string | null
+          result: string
+          duration_ms: number | null
+          moves: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          dungeon_id: string
+          player_near_account?: string | null
+          result: string
+          duration_ms?: number | null
+          moves?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          dungeon_id?: string
+          player_near_account?: string | null
+          result?: string
+          duration_ms?: number | null
+          moves?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          id: string
+          dungeon_id: string
+          player_near_account: string
+          rating: number
+          feedback: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          dungeon_id: string
+          player_near_account: string
+          rating: number
+          feedback?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          dungeon_id?: string
+          player_near_account?: string
+          rating?: number
+          feedback?: string | null
+          created_at?: string
         }
         Relationships: []
       }

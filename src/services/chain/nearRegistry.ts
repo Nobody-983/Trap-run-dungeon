@@ -6,18 +6,25 @@ import {
 } from '../../game/canonicalIdentity.ts'
 
 export const NEAR_REGISTER_CHALLENGE_GAS = 30_000_000_000_000n
+export const NEAR_PUBLISHING_FEE_YOCTO = 50_000_000_000_000_000_000_000n // 0.05 NEAR
 export const NEAR_MAX_PAGE_LIMIT = 50
 const MAX_U64 = (1n << 64n) - 1n
 
 /** JSON shape returned by the registry. Rust U64 fields are decimal strings. */
 export interface NearRegistryChallenge {
   challenge_id: string
+  dungeon_id?: string
   dungeon_hash: string
   creator: string
   schema_version: number
   registered_at_nanoseconds: string
   registered_at_block_height: string
+  updated_at_nanoseconds?: string
+  updated_at_block_height?: string
+  version?: number
+  is_published?: boolean
   metadata?: string | null
+  metadata_uri?: string | null
 }
 
 export type NearRegistryChangeCall =
@@ -37,25 +44,54 @@ export type NearRegistryChangeCall =
     }
   | {
       contractId: string
+      methodName: 'publish_dungeon'
+      args: { dungeon_hash: string; metadata_uri?: string | null }
+      gas: string
+      deposit: string
+    }
+  | {
+      contractId: string
       methodName: 'update_metadata'
       args: { challenge_id: string; metadata: string | null }
+      gas: string
+      deposit: string
+    }
+  | {
+      contractId: string
+      methodName: 'update_dungeon'
+      args: { dungeon_id: string; metadata_uri?: string | null }
+      gas: string
+      deposit: string
+    }
+  | {
+      contractId: string
+      methodName: 'unpublish_dungeon'
+      args: { dungeon_id: string }
       gas: string
       deposit: string
     }
 
 export type NearRegistryViewCall =
   | { contractId: string; methodName: 'get_challenge'; args: { challenge_id: string } }
+  | { contractId: string; methodName: 'get_dungeon'; args: { dungeon_id: string } }
   | { contractId: string; methodName: 'get_challenge_by_hash'; args: { dungeon_hash: string } }
   | { contractId: string; methodName: 'is_dungeon_registered'; args: { dungeon_hash: string } }
   | { contractId: string; methodName: 'verify_creator'; args: { challenge_id: string; account_id: string } }
   | { contractId: string; methodName: 'get_creator_challenge_count'; args: { creator: string } }
   | { contractId: string; methodName: 'get_challenge_count'; args: Record<string, never> }
+  | { contractId: string; methodName: 'get_dungeon_count'; args: Record<string, never> }
   | {
       contractId: string
       methodName: 'get_challenges_by_creator'
       args: { creator: string; from_index: string; limit: number }
     }
+  | {
+      contractId: string
+      methodName: 'get_creator_dungeons'
+      args: { creator: string; from_index: string; limit: number }
+    }
   | { contractId: string; methodName: 'get_next_challenge_id'; args: Record<string, never> }
+  | { contractId: string; methodName: 'get_next_dungeon_id'; args: Record<string, never> }
 
 export interface NearRegistryTransport {
   viewFunction<T>(request: NearRegistryViewCall): Promise<T>
@@ -95,6 +131,27 @@ export function buildRegisterChallengeCall(
   }
 }
 
+export function buildPublishDungeonCall(
+  registryAccountId: string,
+  dungeonHash: Uint8Array,
+  storageDepositYocto: bigint,
+  metadataUri?: string | null,
+): NearRegistryChangeCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  if (dungeonHash.length !== 32) throw new Error('NEAR registry dungeon hash must be exactly 32 bytes')
+  if (storageDepositYocto <= 0n) throw new Error('NEAR registry storage deposit must be positive')
+  if (metadataUri !== undefined && metadataUri !== null) {
+    if (metadataUri.length > 512) throw new Error('Metadata exceeds maximum length of 512 characters')
+  }
+  return {
+    contractId: registryAccountId,
+    methodName: 'publish_dungeon',
+    args: { dungeon_hash: bytesToBase64(dungeonHash), metadata_uri: metadataUri ?? null },
+    gas: NEAR_REGISTER_CHALLENGE_GAS.toString(),
+    deposit: storageDepositYocto.toString(),
+  }
+}
+
 export function buildUpdateMetadataCall(
   registryAccountId: string,
   challengeId: bigint,
@@ -113,10 +170,49 @@ export function buildUpdateMetadataCall(
   }
 }
 
+export function buildUpdateDungeonCall(
+  registryAccountId: string,
+  dungeonId: bigint,
+  metadataUri: string | null,
+  depositYocto: bigint = 10_000_000_000_000_000_000_000n, // 0.01 NEAR buffer
+): NearRegistryChangeCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertPositiveU64(dungeonId, 'Dungeon ID')
+  if (metadataUri && metadataUri.length > 512) throw new Error('Metadata exceeds maximum length of 512 characters')
+  return {
+    contractId: registryAccountId,
+    methodName: 'update_dungeon',
+    args: { dungeon_id: dungeonId.toString(), metadata_uri: metadataUri },
+    gas: NEAR_REGISTER_CHALLENGE_GAS.toString(),
+    deposit: depositYocto.toString(),
+  }
+}
+
+export function buildUnpublishDungeonCall(
+  registryAccountId: string,
+  dungeonId: bigint,
+): NearRegistryChangeCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertPositiveU64(dungeonId, 'Dungeon ID')
+  return {
+    contractId: registryAccountId,
+    methodName: 'unpublish_dungeon',
+    args: { dungeon_id: dungeonId.toString() },
+    gas: NEAR_REGISTER_CHALLENGE_GAS.toString(),
+    deposit: '1', // 1 yoctoNEAR
+  }
+}
+
 export function buildGetChallengeCall(registryAccountId: string, challengeId: bigint): NearRegistryViewCall {
   assertNearAccountId(registryAccountId, 'Registry account ID')
   assertPositiveU64(challengeId, 'Challenge ID')
   return { contractId: registryAccountId, methodName: 'get_challenge', args: { challenge_id: challengeId.toString() } }
+}
+
+export function buildGetDungeonCall(registryAccountId: string, dungeonId: bigint): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertPositiveU64(dungeonId, 'Dungeon ID')
+  return { contractId: registryAccountId, methodName: 'get_dungeon', args: { dungeon_id: dungeonId.toString() } }
 }
 
 export function buildGetChallengeByHashCall(registryAccountId: string, dungeonHash: Uint8Array): NearRegistryViewCall {
@@ -155,6 +251,11 @@ export function buildGetChallengeCountCall(registryAccountId: string): NearRegis
   return { contractId: registryAccountId, methodName: 'get_challenge_count', args: {} }
 }
 
+export function buildGetDungeonCountCall(registryAccountId: string): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  return { contractId: registryAccountId, methodName: 'get_dungeon_count', args: {} }
+}
+
 export function buildGetChallengesByCreatorCall(
   registryAccountId: string,
   creator: string,
@@ -174,10 +275,30 @@ export function buildGetChallengesByCreatorCall(
   }
 }
 
+export function buildGetCreatorDungeonsCall(
+  registryAccountId: string,
+  creator: string,
+  fromIndex: bigint = 0n,
+  limit = 20,
+): NearRegistryViewCall {
+  assertNearAccountId(registryAccountId, 'Registry account ID')
+  assertNearAccountId(creator, 'Creator account ID')
+  assertU64(fromIndex, 'Pagination index')
+  if (!Number.isInteger(limit) || limit < 1 || limit > NEAR_MAX_PAGE_LIMIT) {
+    throw new Error(`Pagination limit must be between 1 and ${NEAR_MAX_PAGE_LIMIT}`)
+  }
+  return {
+    contractId: registryAccountId,
+    methodName: 'get_creator_dungeons',
+    args: { creator, from_index: fromIndex.toString(), limit },
+  }
+}
+
 export function decodeNearRegistryChallenge(value: unknown): NearRegistryChallenge {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Malformed registry challenge')
   const candidate = value as Record<string, unknown>
-  const challengeId = decimalU64(candidate.challenge_id, 'challenge_id', true)
+  const rawId = candidate.challenge_id ?? candidate.dungeon_id
+  const challengeId = decimalU64(rawId, 'challenge_id', true)
   const registeredAtNanoseconds = decimalU64(candidate.registered_at_nanoseconds, 'registered_at_nanoseconds')
   const registeredAtBlockHeight = decimalU64(candidate.registered_at_block_height, 'registered_at_block_height')
   if (candidate.schema_version !== CANONICAL_DUNGEON_VERSION) throw new Error('Unsupported dungeon schema version')
@@ -186,15 +307,97 @@ export function decodeNearRegistryChallenge(value: unknown): NearRegistryChallen
   if (typeof candidate.dungeon_hash !== 'string') throw new Error('Malformed registry dungeon hash')
   const hash = base64ToBytes(candidate.dungeon_hash)
   if (hash.length !== 32 || bytesToBase64(hash) !== candidate.dungeon_hash) throw new Error('Malformed registry dungeon hash')
-  return {
+
+  const result: NearRegistryChallenge = {
     challenge_id: challengeId,
     dungeon_hash: candidate.dungeon_hash,
     creator: candidate.creator,
     schema_version: CANONICAL_DUNGEON_VERSION,
     registered_at_nanoseconds: registeredAtNanoseconds,
     registered_at_block_height: registeredAtBlockHeight,
-    ...(typeof candidate.metadata === 'string' || candidate.metadata === null ? { metadata: candidate.metadata } : {}),
   }
+
+  if (candidate.dungeon_id !== undefined) {
+    result.dungeon_id = decimalU64(candidate.dungeon_id, 'dungeon_id', true)
+  }
+  if (typeof candidate.version === 'number') {
+    result.version = candidate.version
+  }
+  if (typeof candidate.is_published === 'boolean') {
+    result.is_published = candidate.is_published
+  }
+  if (typeof candidate.updated_at_nanoseconds === 'string') {
+    result.updated_at_nanoseconds = decimalU64(candidate.updated_at_nanoseconds, 'updated_at_nanoseconds')
+  }
+  if (typeof candidate.updated_at_block_height === 'string') {
+    result.updated_at_block_height = decimalU64(candidate.updated_at_block_height, 'updated_at_block_height')
+  }
+  if (typeof candidate.metadata === 'string' || candidate.metadata === null) {
+    result.metadata = candidate.metadata
+  }
+  if (typeof candidate.metadata_uri === 'string' || candidate.metadata_uri === null) {
+    result.metadata_uri = candidate.metadata_uri
+  }
+
+  return result
+}
+
+export function extractChallengeIdFromOutcome(outcome: unknown): string {
+  if (!outcome || typeof outcome !== 'object') throw new Error('Invalid outcome object')
+  const record = outcome as Record<string, unknown>
+
+  // 1. Inspect receipts logs for NEP-297 event
+  if (Array.isArray(record.receipts_outcome)) {
+    for (const ro of record.receipts_outcome) {
+      const logs = (ro as { outcome?: { logs?: unknown[] } })?.outcome?.logs
+      if (Array.isArray(logs)) {
+        for (const log of logs) {
+          if (typeof log === 'string' && log.startsWith('EVENT_JSON:')) {
+            try {
+              const parsed: unknown = JSON.parse(log.slice('EVENT_JSON:'.length))
+              const id =
+                (parsed as { data?: Array<{ challenge_id?: unknown; dungeon_id?: unknown }> })?.data?.[0]?.dungeon_id ??
+                (parsed as { data?: Array<{ challenge_id?: unknown; dungeon_id?: unknown }> })?.data?.[0]?.challenge_id
+              if (typeof id === 'string' || typeof id === 'number') return String(id)
+            } catch {
+              /* ignore parse errors */
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Fallback to status.SuccessValue
+  const status = record.status as { SuccessValue?: unknown } | undefined
+  if (typeof status?.SuccessValue === 'string') {
+    try {
+      const decoded = atob(status.SuccessValue).replace(/"/g, '').trim()
+      if (/^\d+$/.test(decoded)) return decoded
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // 3. Fallback to transaction_outcome logs
+  const txLogs = (record.transaction_outcome as { outcome?: { logs?: unknown[] } })?.outcome?.logs
+  if (Array.isArray(txLogs)) {
+    for (const log of txLogs) {
+      if (typeof log === 'string' && log.startsWith('EVENT_JSON:')) {
+        try {
+          const parsed: unknown = JSON.parse(log.slice('EVENT_JSON:'.length))
+          const id =
+            (parsed as { data?: Array<{ challenge_id?: unknown; dungeon_id?: unknown }> })?.data?.[0]?.dungeon_id ??
+            (parsed as { data?: Array<{ challenge_id?: unknown; dungeon_id?: unknown }> })?.data?.[0]?.challenge_id
+          if (typeof id === 'string' || typeof id === 'number') return String(id)
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }
+
+  throw new Error('Could not extract challenge ID from NEAR transaction outcome')
 }
 
 export function decodeNearRegistryChallengeList(value: unknown): NearRegistryChallenge[] {

@@ -1,13 +1,13 @@
-import { JsonRpcProvider, type Provider } from 'near-api-js'
+import { JsonRpcProvider } from '@near-js/providers'
 import { NEAR_CONFIG, formatNearError } from './nearConfig'
 import type { NearRegistryTransport, NearRegistryViewCall } from './nearRegistry'
 
 /** Finality-safe, read-only registry transport. Transactions always go through the wallet. */
 export class NearRegistryRpcTransport implements NearRegistryTransport {
-  private readonly provider: Provider
+  private readonly provider: JsonRpcProvider
   private verifiedNetwork = false
 
-  constructor(provider?: Provider) {
+  constructor(provider?: JsonRpcProvider) {
     this.provider = provider ?? new JsonRpcProvider({ url: NEAR_CONFIG.rpcUrl })
   }
 
@@ -15,12 +15,12 @@ export class NearRegistryRpcTransport implements NearRegistryTransport {
     try {
       if (request.contractId !== NEAR_CONFIG.registryAccountId) throw new Error('Registry account does not match the testnet configuration')
       await this.assertTestnet()
-      const result = await this.provider.callFunction({
-        contractId: request.contractId,
-        method: request.methodName,
-        args: request.args,
-        blockQuery: { finality: 'final' },
-      })
+      const result = await this.provider.callFunction(
+        request.contractId,
+        request.methodName,
+        request.args,
+        { finality: 'final' },
+      )
       return (result ?? null) as T
     } catch (error) {
       throw new Error(formatNearError(error))

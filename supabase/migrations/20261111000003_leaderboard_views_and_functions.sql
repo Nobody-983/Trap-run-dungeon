@@ -88,6 +88,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
+SET search_path = public, pg_temp
 AS $$
     SELECT
         ROW_NUMBER() OVER (ORDER BY s.score DESC, s.completion_time_ms ASC, s.moves ASC, s.created_at ASC) AS rank,

@@ -3,6 +3,7 @@ import type { HazardCause } from './types'
 export type PlayMode = 'practice' | 'daily' | 'friend' | 'test'
 
 export interface RunResult {
+  attemptId?: string
   dungeonId: string
   dungeonName: string
   mode: PlayMode

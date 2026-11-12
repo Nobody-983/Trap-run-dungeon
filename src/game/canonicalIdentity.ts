@@ -98,6 +98,21 @@ export async function canonicalDungeonHashHex(input: CanonicalDungeonInput, vers
   return bytesToHex(await canonicalDungeonHash(input, version))
 }
 
+export async function canonicalDungeonHashBase64(input: CanonicalDungeonInput, version: number = CANONICAL_DUNGEON_VERSION): Promise<string> {
+  return bytesToBase64(await canonicalDungeonHash(input, version))
+}
+
+export function bytesToBase64(bytes: Uint8Array): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(bytes).toString('base64')
+  }
+  let binary = ''
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
 /**
  * Bytes that identify one registered challenge independently of the share envelope:
  * magic[4], version u8, length-prefixed registry context, challenge id u64-be,

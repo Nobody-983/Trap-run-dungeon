@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { readSession } from '@/auth/session'
 import type { RunResult } from '@/game/result'
 import type { Dungeon } from '@/game/types'
+import { applyPurchase, type CatalogItem } from '@/economy/catalog'
 import { COSMETICS } from './cosmetics'
 import { creditPurchased, rollDay, spendOne, totalHealth } from './health'
 import { applyPublish, applyRun, type ProgressReport } from './progression'
@@ -14,7 +15,14 @@ import {
   type PaymentRecord,
   type Profile,
   type Settings,
+  type EconomyTransaction,
+  reconcileEconomyBalance,
 } from './profile'
+import {
+  fetchCloudProfile,
+  mergeCloudProfile,
+  syncProfileToSupabase,
+} from '@/services/supabase/profileSync'
 
 const GUEST_KEY = 'trap-run:profile:v1'
 const BACKUP_KEY = 'trap-run:profile:corrupt'
@@ -83,6 +91,23 @@ function commit(next: Profile): void {
   profile = next
   persist()
   listeners.forEach((l) => l())
+  // Asynchronously synchronize authenticated wallet progression to Supabase
+  if (activeAddress) {
+    void syncProfileToSupabase(next, activeAddress)
+  }
+}
+
+// Background initial sync if wallet was already authenticated on session restoration
+if (activeAddress) {
+  const accountId = activeAddress
+  void fetchCloudProfile(accountId).then((cloud) => {
+    if (cloud && activeAddress === accountId) {
+      const merged = mergeCloudProfile(profile, cloud)
+      if (merged !== profile) {
+        commit(merged)
+      }
+    }
+  })
 }
 
 export const profileStore = {
@@ -107,6 +132,18 @@ export const profileStore = {
     if (next === activeAddress) return
     activeAddress = next
     commit(loadOrCreate(next))
+
+    // On wallet switch, background fetch cloud state and merge
+    if (next) {
+      void fetchCloudProfile(next).then((cloud) => {
+        if (cloud && activeAddress === next) {
+          const merged = mergeCloudProfile(profile, cloud)
+          if (merged !== profile) {
+            commit(merged)
+          }
+        }
+      })
+    }
   },
 
   recordRun(result: RunResult): ProgressReport {
@@ -158,6 +195,99 @@ export const profileStore = {
   },
   recordNearChallenge(rec: NearChallengeRecord): void {
     commit({ ...profile, nearChallenges: [rec, ...profile.nearChallenges].slice(0, 100) })
+  },
+
+  // ---- coins & economy ----
+  addCoins(amount: number, referenceId = 'bonus'): void {
+    if (amount <= 0) return
+    const creditTx: EconomyTransaction = {
+      id: `credit:manual:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      kind: 'credit',
+      amount: Math.floor(amount),
+      category: 'starter',
+      referenceId,
+      createdAt: Date.now(),
+    }
+    const nextLedger = [...(profile.economyLedger || []), creditTx]
+    const reconciled = reconcileEconomyBalance(nextLedger)
+    commit({ ...profile, coins: reconciled, economyLedger: nextLedger })
+  },
+  spendCoins(amount: number, referenceId = 'manual'): boolean {
+    if (amount <= 0) return true
+    if ((profile.coins ?? 0) < amount) return false
+    const debitTx: EconomyTransaction = {
+      id: `debit:manual:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      kind: 'debit',
+      amount: Math.floor(amount),
+      category: 'consumable_use',
+      referenceId,
+      createdAt: Date.now(),
+    }
+    const nextLedger = [...(profile.economyLedger || []), debitTx]
+    const reconciled = reconcileEconomyBalance(nextLedger)
+    commit({ ...profile, coins: reconciled, economyLedger: nextLedger })
+    return true
+  },
+  buyItem(itemId: string): CatalogItem {
+    const { profile: next, item } = applyPurchase(profile, itemId)
+    commit(next)
+    return item
+  },
+  useHealthPotion(): boolean {
+    if ((profile.inventory?.healthPotions ?? 0) <= 0) return false
+    commit({
+      ...profile,
+      inventory: {
+        ...profile.inventory,
+        healthPotions: profile.inventory.healthPotions - 1,
+      },
+    })
+    return true
+  },
+  useFullElixir(): boolean {
+    if ((profile.inventory?.fullElixirs ?? 0) <= 0) return false
+    commit({
+      ...profile,
+      inventory: {
+        ...profile.inventory,
+        fullElixirs: profile.inventory.fullElixirs - 1,
+      },
+    })
+    return true
+  },
+  useEnergyCell(): boolean {
+    if ((profile.inventory?.energyCells ?? 0) <= 0) return false
+    const rolled = rollDay(profile.health)
+    commit({
+      ...profile,
+      inventory: {
+        ...profile.inventory,
+        energyCells: profile.inventory.energyCells - 1,
+      },
+      health: {
+        ...rolled,
+        bonus: rolled.bonus + 3,
+      },
+    })
+    return true
+  },
+
+  // ---- named drafts ----
+  saveNamedDraft(name: string, draft: Draft): void {
+    const clean = name.trim().slice(0, 32)
+    if (!clean) return
+    commit({
+      ...profile,
+      drafts: { ...profile.drafts, [clean]: draft },
+    })
+  },
+  deleteNamedDraft(name: string): void {
+    const nextDrafts = { ...profile.drafts }
+    delete nextDrafts[name]
+    commit({ ...profile, drafts: nextDrafts })
+  },
+  loadNamedDraft(name: string): Draft | null {
+    return profile.drafts?.[name] ?? null
   },
 
   setSettings(patch: Partial<Settings>): void {

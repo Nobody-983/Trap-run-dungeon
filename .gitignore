@@ -6,3 +6,4 @@ contracts/out/
 contracts/cache/
 .DS_Store
 *.log
+config.bat

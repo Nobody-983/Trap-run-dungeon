@@ -4,13 +4,19 @@ import test from 'node:test'
 import { canonicalDungeonHash, hexToBytes, type CanonicalDungeonInput } from '../src/game/canonicalIdentity.ts'
 import {
   buildGetChallengeCall,
+  buildGetDungeonCall,
   buildGetChallengeByHashCall,
   buildIsDungeonRegisteredCall,
   buildVerifyCreatorCall,
   buildGetChallengeCountCall,
+  buildGetDungeonCountCall,
   buildUpdateMetadataCall,
+  buildUpdateDungeonCall,
+  buildUnpublishDungeonCall,
   buildGetChallengesByCreatorCall,
+  buildGetCreatorDungeonsCall,
   buildRegisterChallengeCall,
+  buildPublishDungeonCall,
   decodeNearRegistryChallenge,
   decodeNearRegistryChallengeList,
   verifyNearRegistryChallenge,
@@ -146,5 +152,70 @@ void test('new contract call builders support hash lookup, creator verification,
   if (registerWithMeta.methodName === 'register_challenge_with_metadata') {
     assert.equal(registerWithMeta.args.metadata, 'My Dungeon')
   }
+})
+
+void test('canonical publishing call builders and response decoder support the enhanced contract API', async () => {
+  const hash = await canonicalDungeonHash(dungeon)
+
+  // publish_dungeon
+  const pubCall = buildPublishDungeonCall(fixture.registry, hash, 50_000_000_000_000_000_000_000n, 'ipfs://bafy.../metadata.json')
+  assert.equal(pubCall.methodName, 'publish_dungeon')
+  assert.equal(pubCall.contractId, fixture.registry)
+  assert.equal(pubCall.deposit, '50000000000000000000000')
+  if (pubCall.methodName === 'publish_dungeon') {
+    assert.equal(pubCall.args.metadata_uri, 'ipfs://bafy.../metadata.json')
+  }
+
+  // update_dungeon
+  const updateCall = buildUpdateDungeonCall(fixture.registry, 7n, 'ipfs://new_meta')
+  assert.equal(updateCall.methodName, 'update_dungeon')
+  if (updateCall.methodName === 'update_dungeon') {
+    assert.equal(updateCall.args.dungeon_id, '7')
+    assert.equal(updateCall.args.metadata_uri, 'ipfs://new_meta')
+  }
+
+  // unpublish_dungeon
+  const unpubCall = buildUnpublishDungeonCall(fixture.registry, 7n)
+  assert.equal(unpubCall.methodName, 'unpublish_dungeon')
+  assert.equal(unpubCall.deposit, '1')
+  if (unpubCall.methodName === 'unpublish_dungeon') {
+    assert.equal(unpubCall.args.dungeon_id, '7')
+  }
+
+  // view builders
+  const getDungeonCall = buildGetDungeonCall(fixture.registry, 7n)
+  assert.equal(getDungeonCall.methodName, 'get_dungeon')
+  assert.deepEqual(getDungeonCall.args, { dungeon_id: '7' })
+
+  const getDungeonCountCall = buildGetDungeonCountCall(fixture.registry)
+  assert.equal(getDungeonCountCall.methodName, 'get_dungeon_count')
+
+  const getCreatorDungeonsCall = buildGetCreatorDungeonsCall(fixture.registry, 'creator.testnet', 10n, 25)
+  assert.equal(getCreatorDungeonsCall.methodName, 'get_creator_dungeons')
+  assert.deepEqual(getCreatorDungeonsCall.args, { creator: 'creator.testnet', from_index: '10', limit: 25 })
+
+  // Full response decode
+  const fullResponse = {
+    dungeon_id: '7',
+    challenge_id: '7',
+    dungeon_hash: Buffer.from(hexToBytes(fixture.dungeon_hash_hex)).toString('base64'),
+    creator: 'runner.testnet',
+    schema_version: 1,
+    registered_at_nanoseconds: '123000',
+    registered_at_block_height: '45600',
+    updated_at_nanoseconds: '124000',
+    updated_at_block_height: '45700',
+    version: 2,
+    is_published: true,
+    metadata_uri: 'ipfs://uri',
+    metadata: 'ipfs://uri',
+  }
+  const decoded = decodeNearRegistryChallenge(fullResponse)
+  assert.equal(decoded.dungeon_id, '7')
+  assert.equal(decoded.challenge_id, '7')
+  assert.equal(decoded.version, 2)
+  assert.equal(decoded.is_published, true)
+  assert.equal(decoded.metadata_uri, 'ipfs://uri')
+  assert.equal(decoded.updated_at_block_height, '45700')
 })
 

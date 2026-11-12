@@ -94,6 +94,7 @@ The frontend uses `@near-wallet-selector/core` and `@near-wallet-selector/my-nea
 
 Configured in `src/services/chain/near.ts`:
 - **Network ID:** `testnet`
-- **Node URL:** `https://rpc.testnet.near.org`
+- **Node URL:** `https://rpc.testnet.fastnear.com` (CORS-friendly; or `https://rpc.testnet.near.org`)
 - **Wallet URL:** `https://testnet.mynearwallet.com`
 - **Explorer URL:** `https://testnet.nearblocks.io`
+

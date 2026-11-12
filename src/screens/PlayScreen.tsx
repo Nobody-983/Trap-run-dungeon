@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { ArrowLeft, Key, RotateCcw, Zap } from 'lucide-react'
+import { ArrowLeft, Heart, Key, RotateCcw, Sparkles, Zap } from 'lucide-react'
+import { toast } from 'sonner'
 import { useNav } from '@/app/nav'
 import { Dpad } from '@/components/Dpad'
 import { Bar, Button, Label, Lives } from '@/components/ui'
@@ -106,6 +107,40 @@ export function PlayScreen({ dungeon, mode, back, next, tip, onFinish, onExit }:
     return () => clearTimeout(t)
   }, [snap.phase, ctrl, mode, nav, dungeon, back, next, tip, onFinish])
 
+  const handleUsePotion = useCallback(() => {
+    if (snap.phase !== 'running') return
+    if (snap.lives >= 3) {
+      toast.info('Lives already full (3/3)')
+      return
+    }
+    if ((profile.inventory?.healthPotions ?? 0) <= 0) {
+      toast.error('No Health Potions left! Buy some in the Armory.')
+      return
+    }
+    if (profileStore.useHealthPotion()) {
+      ctrl.heal(1)
+      sfx.play('win')
+      toast.success('Used Health Potion (+1 Life)')
+    }
+  }, [snap.phase, snap.lives, profile.inventory?.healthPotions, ctrl])
+
+  const handleUseElixir = useCallback(() => {
+    if (snap.phase !== 'running') return
+    if (snap.lives >= 3) {
+      toast.info('Lives already full (3/3)')
+      return
+    }
+    if ((profile.inventory?.fullElixirs ?? 0) <= 0) {
+      toast.error('No Full Life Elixirs left!')
+      return
+    }
+    if (profileStore.useFullElixir()) {
+      ctrl.heal(3)
+      sfx.play('win')
+      toast.success('Used Full Life Elixir (Full 3 Lives Restored!)')
+    }
+  }, [snap.phase, snap.lives, profile.inventory?.fullElixirs, ctrl])
+
   // keyboard
   useEffect(() => {
     let last = 0
@@ -118,6 +153,10 @@ export function PlayScreen({ dungeon, mode, back, next, tip, onFinish, onExit }:
         restart()
         return
       }
+      if (e.key === 'h' || e.key === 'H') {
+        handleUsePotion()
+        return
+      }
       const a = KEYS[e.key]
       if (!a) return
       e.preventDefault()
@@ -128,7 +167,7 @@ export function PlayScreen({ dungeon, mode, back, next, tip, onFinish, onExit }:
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ctrl, exit, restart])
+  }, [ctrl, exit, restart, handleUsePotion])
 
   if (!allowed) return <OutOfHealth back={back} />
 
@@ -176,6 +215,38 @@ export function PlayScreen({ dungeon, mode, back, next, tip, onFinish, onExit }:
           </div>
           <div className="col-span-3">
             <Bar ratio={snap.progress} />
+          </div>
+        </div>
+
+        {/* In-game consumable supply buttons and coin balance */}
+        <div className="flex items-center justify-between gap-2 px-1 text-xs">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleUsePotion}
+              disabled={snap.lives >= 3 || (profile.inventory?.healthPotions ?? 0) <= 0 || snap.phase !== 'running'}
+              className="flex items-center gap-1.5 rounded-lg border border-blood-500/30 bg-blood-500/10 px-2.5 py-1 text-blood-400 transition hover:bg-blood-500/20 disabled:opacity-40"
+              title="Use Health Potion (+1 Life) [Press H]"
+            >
+              <Heart size={14} className="fill-blood-500" />
+              <span>Potion</span>
+              <span className="font-pixel text-[11px] text-zinc-300">x{profile.inventory?.healthPotions ?? 0}</span>
+              <kbd className="hidden rounded bg-ink-700 px-1 font-pixel text-[9px] sm:inline">H</kbd>
+            </button>
+            {(profile.inventory?.fullElixirs ?? 0) > 0 && (
+              <button
+                onClick={handleUseElixir}
+                disabled={snap.lives >= 3 || snap.phase !== 'running'}
+                className="flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-purple-400 transition hover:bg-purple-500/20 disabled:opacity-40"
+                title="Use Full Life Elixir (Full 3 Lives)"
+              >
+                <Sparkles size={14} className="text-purple-400" />
+                <span>Elixir</span>
+                <span className="font-pixel text-[11px] text-zinc-300">x{profile.inventory?.fullElixirs ?? 0}</span>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1 font-pixel text-xs text-amber-400">
+            <span>🪙 {profile.coins ?? 0}</span>
           </div>
         </div>
 

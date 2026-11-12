@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <defs>
+    <linearGradient id="voltGrad" x1="8" y1="8" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#cfa6ff" />
+      <stop offset="50%" stop-color="#b57bff" />
+      <stop offset="100%" stop-color="#9d4dff" />
+    </linearGradient>
+    <linearGradient id="acidGrad" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d4ff7a" />
+      <stop offset="50%" stop-color="#b9ff3b" />
+      <stop offset="100%" stop-color="#8fd116" />
+    </linearGradient>
+    <filter id="neonVolt" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="neonAcid" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Crest Emblem Group -->
+  <g transform="translate(6, 4)">
+    <!-- Outer Dungeon Shield -->
+    <polygon points="36,4 66,19 66,53 36,68 6,53 6,19" fill="#0c0c12" stroke="url(#voltGrad)" stroke-width="3" stroke-linejoin="round" />
+    
+    <!-- Chamber Inset -->
+    <polygon points="36,10 59,22 59,50 36,62 13,50 13,22" fill="#13131d" stroke="#262638" stroke-width="1.5" />
+
+    <!-- Spikes & Gate Hazards -->
+    <path d="M22 21 L26 29 L30 21 L34 29 L38 21 L42 29 L46 21" stroke="url(#voltGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M22 51 L26 43 L30 51 L34 43 L38 51 L42 43 L46 51" stroke="url(#voltGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Core Runner Escape Glyph -->
+    <g filter="url(#neonAcid)">
+      <polygon points="36,25 47,36 36,47 39,36" fill="url(#acidGrad)" />
+      <polygon points="25,36 36,25 33,36" fill="#b9ff3b" opacity="0.9" />
+      <circle cx="36" cy="36" r="3.5" fill="#ffffff" />
+    </g>
+
+    <!-- Corner Accents -->
+    <circle cx="6" cy="19" r="2.5" fill="#b9ff3b" />
+    <circle cx="66" cy="19" r="2.5" fill="#b9ff3b" />
+    <circle cx="36" cy="68" r="2.5" fill="#b9ff3b" />
+  </g>
+
+  <!-- Wordmark Group -->
+  <g transform="translate(88, 12)">
+    <!-- TRAP -->
+    <text x="0" y="38" font-family="'Space Grotesk', 'Silkscreen', sans-serif" font-weight="800" font-size="34" letter-spacing="-1" fill="#f4f4f5">
+      TRAP
+    </text>
+
+    <!-- Neon Slashes // -->
+    <text x="96" y="38" font-family="'Space Grotesk', 'Silkscreen', sans-serif" font-weight="900" font-size="34" letter-spacing="-2" fill="#b57bff" filter="url(#neonVolt)">
+      //
+    </text>
+
+    <!-- RUN -->
+    <text x="124" y="38" font-family="'Space Grotesk', 'Silkscreen', sans-serif" font-weight="800" font-size="34" letter-spacing="-1" fill="#b9ff3b" filter="url(#neonAcid)">
+      RUN
+    </text>
+
+    <!-- Subtitle Badge -->
+    <g transform="translate(2, 46)">
+      <rect x="0" y="0" width="168" height="14" rx="3" fill="#1b1b29" stroke="#3a3a55" stroke-width="0.8" />
+      <text x="8" y="10.5" font-family="'Silkscreen', 'Space Grotesk', monospace" font-size="8.5" font-weight="700" fill="#a1a1aa" letter-spacing="1.5">
+        DUNGEON CHALLENGE
+      </text>
+      <circle cx="160" cy="7" r="2" fill="#b9ff3b" />
+    </g>
+  </g>
+</svg>
+

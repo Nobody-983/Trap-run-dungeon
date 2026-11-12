@@ -141,6 +141,23 @@ export function ResultScreen({ result, report, dungeon, back, next, tip }: Props
           {report.streak !== null && report.streak > 0 && <div className="mt-2 text-sm text-ember-400">Daily streak: {report.streak} day{report.streak > 1 ? 's' : ''}.</div>}
         </div>
 
+        {report.coinsGained > 0 && (
+          <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <Label className="!text-amber-300">Coins Earned</Label>
+              <span className="font-pixel text-sm text-amber-400">+{report.coinsGained} 🪙</span>
+            </div>
+            <ul className="flex flex-col gap-1 text-sm text-zinc-300">
+              {report.coinBreakdown.map((b) => (
+                <li key={b.label} className="flex justify-between">
+                  <span>{b.label}</span>
+                  <span className="tabular text-amber-300">+{b.coins}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {(report.newCosmetics.length > 0 || report.newAchievements.length > 0) && (
           <div className="rounded-2xl border border-acid-500/40 bg-acid-500/10 p-4">
             <Label className="mb-2 flex items-center gap-1 !text-acid-300">

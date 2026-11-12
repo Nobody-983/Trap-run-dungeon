@@ -79,3 +79,4 @@ All 12 baseline levels tested with deterministic breadth-first search:
 10. `Gatekeeper`: par=41 (0ms)
 11. `Gauntlet`: par=37 (6ms)
 12. `Final Trial`: par=28 (13ms)
+

@@ -121,3 +121,4 @@ Located in `supabase/migrations/20261111000002_rls_policies.sql`.
 | Contract Front-running | `predecessor_account_id` check + reverse hash map | Enforced |
 | Storage Griefing | Explicit deposit check (0.01 NEAR) + exact refund | Enforced |
 | Pagination DoS | Hard limits on `from_index` and `limit` (max 100) | Enforced |
+

@@ -94,3 +94,13 @@ CREATE TABLE IF NOT EXISTS public.achievements (
     unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (id, player_near_account)
 );
+
+-- Foreign Key & Query Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_dungeons_creator ON public.dungeons (creator_near_account);
+CREATE INDEX IF NOT EXISTS idx_challenges_dungeon ON public.challenges (dungeon_id);
+CREATE INDEX IF NOT EXISTS idx_challenges_creator ON public.challenges (creator_near_account);
+CREATE INDEX IF NOT EXISTS idx_attempts_player ON public.challenge_attempts (player_near_account);
+CREATE INDEX IF NOT EXISTS idx_attempts_dungeon ON public.challenge_attempts (dungeon_id);
+CREATE INDEX IF NOT EXISTS idx_scores_player ON public.scores (player_near_account);
+CREATE INDEX IF NOT EXISTS idx_scores_dungeon ON public.scores (dungeon_id);
+
